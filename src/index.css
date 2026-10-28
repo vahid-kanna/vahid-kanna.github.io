@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+:root,
+.dark {
+  --bg: #0d0d0c;
+  --fg: #eeece6;
+  --mut: #a2a19b;
+  --line: #ffffff26;
+  --p0: #b3a6ff;
+  --p1: #d5b0f5;
+  --p2: #ffb3dc;
+  --p3: #a6e6f2;
+  --p4: #c9c0ff;
+  --p5: #fcc4e3;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: var(--bg);
+  min-height: 100%;
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.text-halo {
+  text-shadow: 0 0 14px var(--bg), 0 0 28px var(--bg);
+}
+
+/* Interactive ID Badge & Verlet Lanyard Stage */
+.badge-stage {
+  user-select: none;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  min-height: 100svh;
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-rope {
+  z-index: 2;
+  pointer-events: none;
+  position: absolute;
+  inset: 0px;
+}
+
+.badge-card {
+  --initial-card-w: max(300px, min(max(520px, calc(50vw + 20px)), 760px));
+  --card-w: var(--initial-card-w);
+  --card-h: calc(var(--card-w) * 0.68);
+  width: var(--card-w);
+  height: var(--card-h);
+  --card-scale: calc(var(--card-w, 560px) / 560);
+  z-index: 3;
+  transform-origin: 50% center;
+  touch-action: none;
+  cursor: grab;
+  pointer-events: auto;
+  outline: none;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  will-change: transform;
+}
+
+@media (max-width: 639px) {
+  .badge-card {
+    --card-w: min(calc(100vw - 28px), 356px);
+    --card-h: 440px;
+    --card-scale: 0.85;
+  }
+}
+
+.badge-card.is-dragging {
+  cursor: grabbing;
+}
+
+.badge-card:focus-visible {
+  outline-offset: 4px;
+  outline: rgba(181, 166, 255, 0.85) solid 2px;
+  border-radius: 22px;
+}
+
+.badge-slot {
+  width: calc(46px * var(--card-scale, 1));
+  height: calc(7px * var(--card-scale, 1));
+  border-radius: calc(4px * var(--card-scale, 1));
+  left: 50%;
+  top: calc(-6px * var(--card-scale, 1));
+  z-index: 4;
+  background: rgb(11, 11, 12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  position: absolute;
+  transform: translate(-50%);
+}
+
+.badge-ring {
+  width: calc(14px * var(--card-scale, 1));
+  height: calc(22px * var(--card-scale, 1));
+  border: calc(2.5px * var(--card-scale, 1)) solid #c4c4cb;
+  border-radius: calc(8px * var(--card-scale, 1));
+  left: 50%;
+  top: calc(-18px * var(--card-scale, 1));
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 4;
+  position: absolute;
+  transform: translate(-50%);
+}
+
+.badge-perspective {
+  perspective: 1200px;
+  width: 100%;
+  height: 100%;
+}
+
+.badge-flip {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  border-radius: 20px;
+  position: relative;
+  will-change: transform;
+}
+
+.badge-flip::before {
+  content: "";
+  pointer-events: none;
+  z-index: -1;
+  border-radius: 20px;
+  position: absolute;
+  inset: 0px;
+  box-shadow: rgba(0, 0, 0, 0.72) 0px 30px 60px, rgba(255, 255, 255, 0.055) 0px 0px 26px;
+}
+
+.badge-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: rgb(11, 11, 12);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: rgba(255, 255, 255, 0.12) 0px 1px inset, rgba(0, 0, 0, 0.45) 0px 12px 32px;
+  border-radius: 20px;
+  position: absolute;
+  inset: 0px;
+  overflow: hidden;
+}
+
+.badge-face::before {
+  content: "";
+  pointer-events: none;
+  z-index: 20;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.2) 15%, rgba(255, 255, 255, 0.2) 85%, rgba(0, 0, 0, 0) 100%);
+  height: 1px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+}
+
+.badge-face.back {
+  transform: rotateY(180deg);
+}
+
+.badge-dots {
+  mix-blend-mode: screen;
+  opacity: 0.48;
+  pointer-events: none;
+  z-index: 6;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, rgba(0, 0, 0, 0) 1.3px);
+  background-size: 7px 7px;
+  border-radius: 20px;
+  position: absolute;
+  inset: 0px;
+}
+
+.badge-glare {
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 7;
+  background-image: linear-gradient(105deg, rgba(0, 0, 0, 0) 40%, rgba(255, 255, 255, 0.14) 50%, rgba(0, 0, 0, 0) 60%);
+  background-size: 260% 100%;
+  border-radius: 20px;
+  position: absolute;
+  inset: 0px;
+}
+
+.badge-accent {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(100deg, rgb(201, 184, 255), rgb(255, 158, 214), rgb(143, 227, 245), rgb(201, 184, 255));
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-weight: 500;
+  display: inline;
+}
+
+.badge-contrib-cell[data-level="0"] { background: rgba(255, 255, 255, 0.06); }
+.badge-contrib-cell[data-level="1"] { background: rgb(166, 230, 242); }
+.badge-contrib-cell[data-level="2"] { background: rgb(179, 166, 255); }
+.badge-contrib-cell[data-level="3"] { background: rgb(213, 176, 245); }
+.badge-contrib-cell[data-level="4"] { background: rgb(255, 179, 220); }
+.badge-contrib-cell[data-level="5"] { background: rgb(252, 196, 227); }
