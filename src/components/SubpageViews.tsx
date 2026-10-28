@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, ArrowRight, Code2, Clock, ArrowUpRight } from 'lucide-react';
+import { ChevronDown, ChevronUp, ArrowRight, Clock, ArrowUpRight, Globe } from 'lucide-react';
 import {
   ProjectItem,
   EssayItem,
@@ -13,6 +13,11 @@ import {
   PROFILE_DATA,
 } from '../utils/portfolioData';
 import { TiltCard } from './TiltCard';
+import {
+  SyncProSimulatorWidget,
+  RailRakshaVectorWidget,
+} from './ProductSimulators';
+import { playTactileClick } from '../utils/soundEngine';
 
 interface WorkPageViewProps {
   onSelectProjectModal: (project: ProjectItem) => void;
@@ -33,15 +38,18 @@ export const WorkPageView: React.FC<WorkPageViewProps> = ({ onSelectProjectModal
       <header className="border-b border-[var(--line)] pb-5 mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
           <div className="max-w-2xl">
+            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--mut)] mb-2">
+              SYS.ARCHIVE // PRODUCT, VENTURES &amp; SYSTEMS CASE STUDIES
+            </div>
             <h1 className="text-3xl sm:text-4xl md:text-[50px] font-normal tracking-[-0.03em] leading-[1.08] text-[var(--fg)] text-halo">
-              Work
+              Work &amp; Ventures
             </h1>
             <p className="mt-2 text-sm sm:text-base text-[var(--fg)]/80 font-normal leading-relaxed text-halo">
-              Selected engineering case studies across frontend systems, offline-first PWAs, and AI automation.
+              Deep-dive case studies across B2B construction SaaS (SyncPro.org), Indian Railways safety (RailRaksha.tech), quantitative alpha engines, and product telemetry.
             </p>
           </div>
           <div className="font-mono text-xs text-[var(--mut)] shrink-0 sm:pb-1 tabular-nums">
-            <span>{filteredProjects.length} projects</span>
+            <span>{filteredProjects.length} case studies</span>
           </div>
         </div>
 
@@ -49,9 +57,9 @@ export const WorkPageView: React.FC<WorkPageViewProps> = ({ onSelectProjectModal
         <div className="mt-6 flex flex-wrap items-center gap-1.5 p-1 rounded-xl border border-[var(--line)] bg-[var(--bg)]/80 w-fit font-mono text-xs">
           {[
             { id: 'all', label: 'All Work' },
-            { id: 'frontend', label: 'Frontend & PWAs' },
-            { id: 'ai-systems', label: 'AI & Quant Systems' },
-            { id: 'product', label: 'B2B SaaS & Telemetry' },
+            { id: 'product', label: 'Ventures & Product Strategy' },
+            { id: 'ai-systems', label: 'Quant & Autonomous Systems' },
+            { id: 'frontend', label: 'Safety PWAs & Tactile UI' },
           ].map((tab) => {
             const active = categoryFilter === tab.id;
             return (
@@ -75,6 +83,7 @@ export const WorkPageView: React.FC<WorkPageViewProps> = ({ onSelectProjectModal
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProjects.map((project) => {
           const isOpen = !!expandedCardIds[project.id];
+          const hasExternalLive = project.liveUrl.startsWith('http');
           return (
             <TiltCard
               key={project.id}
@@ -91,7 +100,7 @@ export const WorkPageView: React.FC<WorkPageViewProps> = ({ onSelectProjectModal
                       <span>{project.stars}</span>
                     </span>
                     <span className="text-[10px] font-mono tracking-widest uppercase text-[var(--fg)] font-medium">
-                      FEATURED
+                      {project.category === 'product' ? 'VENTURE / PM' : 'SYSTEMS'}
                     </span>
                   </div>
                 </div>
@@ -112,6 +121,8 @@ export const WorkPageView: React.FC<WorkPageViewProps> = ({ onSelectProjectModal
                         <li key={m}>· {m}</li>
                       ))}
                     </ul>
+                    {project.id === 'syncpro' && <SyncProSimulatorWidget />}
+                    {project.id === 'railraksha' && <RailRakshaVectorWidget />}
                   </div>
                 )}
 
@@ -133,7 +144,7 @@ export const WorkPageView: React.FC<WorkPageViewProps> = ({ onSelectProjectModal
                   onClick={() => toggleExpand(project.id)}
                   className="text-[var(--mut)] hover:text-[var(--fg)] transition-colors inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                 >
-                  <span>{isOpen ? 'Collapse details' : 'Expand details'}</span>
+                  <span>{isOpen ? 'Collapse' : 'Metrics'}</span>
                   {isOpen ? (
                     <ChevronUp className="w-3.5 h-3.5" aria-hidden="true" />
                   ) : (
@@ -141,17 +152,30 @@ export const WorkPageView: React.FC<WorkPageViewProps> = ({ onSelectProjectModal
                   )}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => onSelectProjectModal(project)}
-                  className="text-[var(--fg)] hover:underline inline-flex items-center gap-1 group/link cursor-pointer whitespace-nowrap"
-                >
-                  <span>Case Study</span>
-                  <ArrowRight
-                    className="w-3 h-3 group-hover/link:translate-x-0.5 transition-transform"
-                    aria-hidden="true"
-                  />
-                </button>
+                <div className="flex items-center gap-3">
+                  {hasExternalLive && (
+                    <a
+                      href={project.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-300 hover:underline inline-flex items-center gap-1 whitespace-nowrap"
+                    >
+                      <Globe className="w-3 h-3" aria-hidden="true" />
+                      <span>Live</span>
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onSelectProjectModal(project)}
+                    className="text-[var(--fg)] hover:underline inline-flex items-center gap-1 group/link cursor-pointer whitespace-nowrap"
+                  >
+                    <span>Case Study</span>
+                    <ArrowRight
+                      className="w-3 h-3 group-hover/link:translate-x-0.5 transition-transform"
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
               </div>
             </TiltCard>
           );
@@ -169,18 +193,31 @@ export const WritingPageView: React.FC<WritingPageViewProps> = ({ onSelectEssay 
   const [tagFilter, setTagFilter] = useState<string>('all');
   const filteredEssays = filterEssaysByTag(ESSAYS_DATA, tagFilter);
 
-  const availableTags = ['all', '#frontend', '#pwa', '#product', '#telemetry', '#quant', '#saas'];
+  const availableTags = [
+    'all',
+    '#product',
+    '#pwa',
+    '#safety-systems',
+    '#saas',
+    '#founders',
+    '#quant',
+    '#telemetry',
+    '#strategy',
+  ];
 
   return (
     <div className="flex-1 w-full max-w-5xl mx-auto px-5 sm:px-8 pt-24 pb-12 font-sans relative z-10">
       <header className="border-b border-[var(--line)] pb-5 mb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
           <div className="max-w-2xl">
+            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--mut)] mb-2">
+              SYS.WRITING // FIELD MEMOS, PRDS &amp; QUANT AUDITS
+            </div>
             <h1 className="text-3xl sm:text-4xl md:text-[50px] font-normal tracking-[-0.03em] leading-[1.08] text-[var(--fg)] text-halo">
               Writing
             </h1>
             <p className="mt-2 text-sm sm:text-base text-[var(--fg)]/80 font-normal leading-relaxed text-halo">
-              Mostly engineering Architecture notes &amp; field lessons I wish I'd read sooner.
+              Field dispatches on railway safety PWAs, construction delay prediction, False Discovery Rate (FDR) backtesting, and macro-governance.
             </p>
           </div>
           <div className="font-mono text-xs text-[var(--mut)] shrink-0 sm:pb-1 tabular-nums">
@@ -262,9 +299,12 @@ export const AboutPageView: React.FC = () => {
     <div className="flex-1 w-full max-w-4xl mx-auto px-5 sm:px-8 pt-24 pb-12 flex flex-col justify-between font-sans relative z-10">
       <div>
         <div className="mb-14">
+          <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--mut)] mb-2">
+            SYS.DOSSIER // SHAIK VAHID BASHA · IIT MADRAS (&apos;27) · PRODUCT &amp; SYSTEMS
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.03em] text-[var(--fg)] text-halo">
-              About
+              About Vahid
             </h1>
             <a
               href={PROFILE_DATA.resumePdfUrl}
@@ -272,7 +312,7 @@ export const AboutPageView: React.FC = () => {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[var(--line)] bg-[var(--bg)]/90 font-mono text-xs text-[var(--fg)] hover:border-[var(--fg)] transition-colors whitespace-nowrap"
             >
-              <span>View Uploaded Resume (PDF)</span>
+              <span>View Product &amp; Strategy Resume (PDF)</span>
               <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
             </a>
           </div>
@@ -289,13 +329,13 @@ export const AboutPageView: React.FC = () => {
         {/* HOW I WORK */}
         <div className="py-8 border-t border-[var(--line)] mb-10">
           <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-6">
-            How I work
+            Product &amp; Systems Philosophy ("Engineering with Feeling")
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {ABOUT_DATA.howIWork.map((item) => (
               <div
                 key={item.title}
-                className="p-5 rounded-xl border border-[var(--line)] bg-[var(--bg)]/85 dark:bg-[#111113]/85 backdrop-blur-md shadow-sm"
+                className="p-5 rounded-xl border border-[var(--line)] bg-[#111113]/85 backdrop-blur-md shadow-sm"
               >
                 <div className="font-medium text-[15px] text-[var(--fg)] mb-1.5">
                   {item.title}
@@ -308,10 +348,10 @@ export const AboutPageView: React.FC = () => {
           </div>
         </div>
 
-        {/* TECHNICAL STACK & ARCHITECTURE */}
+        {/* TECHNICAL & PRODUCT STACK */}
         <div className="py-8 border-t border-[var(--line)] mb-10">
           <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-5">
-            Technical Stack &amp; Craft
+            Product, Quantitative &amp; Engineering Craft
           </h2>
           <div className="space-y-4">
             {ABOUT_DATA.skillsMatrix.map((row) => (
@@ -330,16 +370,16 @@ export const AboutPageView: React.FC = () => {
           </div>
         </div>
 
-        {/* LEADERSHIP & CAMPUS IMPACT AT IIT MADRAS */}
+        {/* LEADERSHIP & SCALE AT IIT MADRAS */}
         <div className="py-8 border-t border-[var(--line)] mb-10">
           <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-5">
-            Leadership &amp; Scale at IIT Madras
+            Venture Leadership &amp; Institutional Scale at IIT Madras
           </h2>
           <div className="space-y-5">
             {ABOUT_DATA.leadershipAndScale.map((lead) => (
               <div
                 key={lead.role}
-                className="p-5 rounded-xl border border-[var(--line)] bg-[var(--bg)]/75 dark:bg-[#111113]/75"
+                className="p-5 rounded-xl border border-[var(--line)] bg-[#111113]/75"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
                   <span className="text-[15px] font-medium text-[var(--fg)]">{lead.role}</span>
@@ -355,17 +395,20 @@ export const AboutPageView: React.FC = () => {
           </div>
         </div>
 
-        {/* OFF THE CLOCK & FUN FACTS */}
+        {/* EDUCATION, ROOTS & PERSONAL */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-8 border-t border-[var(--line)] mb-10">
-          <div className="p-5 rounded-xl border border-[var(--line)] bg-[var(--bg)]/75 dark:bg-[#111113]/75 backdrop-blur-sm">
+          <div className="p-5 rounded-xl border border-[var(--line)] bg-[#111113]/75 backdrop-blur-sm">
             <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-3">
-              Education &amp; Honors
+              Education &amp; Campus Coordinates
             </h2>
             <div className="space-y-2.5 text-[13.5px] text-[var(--fg)]/90 leading-relaxed">
               <div>
                 <div className="font-medium">Indian Institute of Technology Madras</div>
                 <div className="font-mono text-xs text-[var(--mut)] tabular-nums">
-                  B.Tech Civil Engineering · Class of 2027 · CGPA 7.15
+                  Undergraduate Program (2023–2027) · IIT Madras (&apos;27)
+                </div>
+                <div className="font-mono text-[11px] text-[var(--mut)] mt-0.5">
+                  Minors: Personal &amp; Professional Development · International Relations
                 </div>
               </div>
               <div className="pt-2 border-t border-[var(--line)]/50">
@@ -377,9 +420,9 @@ export const AboutPageView: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-5 rounded-xl border border-[var(--line)] bg-[var(--bg)]/75 dark:bg-[#111113]/75 backdrop-blur-sm">
+          <div className="p-5 rounded-xl border border-[var(--line)] bg-[#111113]/75 backdrop-blur-sm">
             <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-3">
-              Fun facts
+              Roots, Horizons &amp; Personal
             </h2>
             <ul className="space-y-2 text-xs font-mono text-[var(--fg)]/85">
               {ABOUT_DATA.funFacts.map((fact) => (
@@ -392,33 +435,45 @@ export const AboutPageView: React.FC = () => {
           </div>
         </div>
 
-        {/* ELSEWHERE */}
+        {/* ELSEWHERE & LIVE PLATFORMS */}
         <div className="pt-8 border-t border-[var(--line)]">
           <h2 className="text-xs font-mono uppercase tracking-widest text-[var(--mut)] mb-6">
-            Elsewhere
+            Live Ventures &amp; Coordinates
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <a
-              href={PROFILE_DATA.socials.github}
+              href={PROFILE_DATA.socials.syncproLive}
               target="_blank"
               rel="noopener noreferrer"
-              className="group p-4 rounded-xl border border-[var(--line)] hover:border-[var(--fg)]/40 transition-all flex items-center justify-between font-mono text-xs bg-[var(--bg)]/80 dark:bg-[#111113]/80 backdrop-blur-sm"
+              className="group p-4 rounded-xl border border-[var(--line)] hover:border-[var(--fg)]/40 transition-all flex items-center justify-between font-mono text-xs bg-[#111113]/80 backdrop-blur-sm"
             >
               <div>
-                <span className="text-[var(--fg)] font-medium block">GitHub</span>
-                <span className="text-[10px] text-[var(--mut)]">@vahidbasha</span>
+                <span className="text-[var(--fg)] font-medium block">SyncPro</span>
+                <span className="text-[10px] text-emerald-300">syncpro.org</span>
               </div>
               <ArrowUpRight className="w-3.5 h-3.5 text-[var(--mut)] group-hover:text-[var(--fg)] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
             <a
-              href={PROFILE_DATA.socials.x}
+              href={PROFILE_DATA.socials.railrakshaLive}
               target="_blank"
               rel="noopener noreferrer"
-              className="group p-4 rounded-xl border border-[var(--line)] hover:border-[var(--fg)]/40 transition-all flex items-center justify-between font-mono text-xs bg-[var(--bg)]/80 dark:bg-[#111113]/80 backdrop-blur-sm"
+              className="group p-4 rounded-xl border border-[var(--line)] hover:border-[var(--fg)]/40 transition-all flex items-center justify-between font-mono text-xs bg-[#111113]/80 backdrop-blur-sm"
             >
               <div>
-                <span className="text-[var(--fg)] font-medium block">X</span>
-                <span className="text-[10px] text-[var(--mut)]">@vahidbasha_iitm</span>
+                <span className="text-[var(--fg)] font-medium block">RailRaksha</span>
+                <span className="text-[10px] text-cyan-300">railraksha.tech</span>
+              </div>
+              <ArrowUpRight className="w-3.5 h-3.5 text-[var(--mut)] group-hover:text-[var(--fg)] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+            <a
+              href={PROFILE_DATA.socials.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group p-4 rounded-xl border border-[var(--line)] hover:border-[var(--fg)]/40 transition-all flex items-center justify-between font-mono text-xs bg-[#111113]/80 backdrop-blur-sm"
+            >
+              <div>
+                <span className="text-[var(--fg)] font-medium block">GitHub</span>
+                <span className="text-[10px] text-[var(--mut)]">@vahid-kanna</span>
               </div>
               <ArrowUpRight className="w-3.5 h-3.5 text-[var(--mut)] group-hover:text-[var(--fg)] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
@@ -426,7 +481,7 @@ export const AboutPageView: React.FC = () => {
               href={PROFILE_DATA.socials.linkedin}
               target="_blank"
               rel="noopener noreferrer"
-              className="group p-4 rounded-xl border border-[var(--line)] hover:border-[var(--fg)]/40 transition-all flex items-center justify-between font-mono text-xs bg-[var(--bg)]/80 dark:bg-[#111113]/80 backdrop-blur-sm"
+              className="group p-4 rounded-xl border border-[var(--line)] hover:border-[var(--fg)]/40 transition-all flex items-center justify-between font-mono text-xs bg-[#111113]/80 backdrop-blur-sm"
             >
               <div>
                 <span className="text-[var(--fg)] font-medium block">LinkedIn</span>

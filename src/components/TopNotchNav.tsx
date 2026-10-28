@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
-import { Calendar, FileText, Menu, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, FileText, Menu, X, Volume2, VolumeX, Terminal } from 'lucide-react';
+import {
+  isSoundEnabled,
+  setSoundEnabled,
+  playTactileClick,
+} from '../utils/soundEngine';
 
 export type NavTab = 'index' | 'work' | 'writing' | 'about';
 
@@ -8,6 +13,7 @@ interface TopNotchNavProps {
   onSelectTab: (tab: NavTab) => void;
   onOpenLlms: () => void;
   onOpenBooking: () => void;
+  onOpenCmdPalette: () => void;
 }
 
 const MASCOT_COLORS = [
@@ -18,10 +24,10 @@ const MASCOT_COLORS = [
 ];
 
 const MASCOT_QUIPS = [
-  'open for frontend roles',
-  'shipping 60fps UIs',
-  'offline-first enthusiast',
-  'IIT Madras · CE23B115',
+  "IIT Madras ('27) · Product Lead",
+  'Co-founder @ SyncPro.org (Nirmaan)',
+  'RailRaksha.tech · 130 km/h Safety',
+  'PM · Strategy · Quant · Systems',
 ];
 
 export const TopNotchNav: React.FC<TopNotchNavProps> = ({
@@ -29,10 +35,16 @@ export const TopNotchNav: React.FC<TopNotchNavProps> = ({
   onSelectTab,
   onOpenLlms,
   onOpenBooking,
+  onOpenCmdPalette,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mascotIdx, setMascotIdx] = useState(0);
   const [showQuip, setShowQuip] = useState(false);
+  const [sfxOn, setSfxOn] = useState<boolean>(true);
+
+  useEffect(() => {
+    setSfxOn(isSoundEnabled());
+  }, []);
 
   const navItems: { id: NavTab; label: string }[] = [
     { id: 'index', label: 'index' },
@@ -43,6 +55,7 @@ export const TopNotchNav: React.FC<TopNotchNavProps> = ({
 
   const handleNavClick = (e: React.MouseEvent, tab: NavTab) => {
     e.preventDefault();
+    playTactileClick(1.0);
     onSelectTab(tab);
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -50,6 +63,7 @@ export const TopNotchNav: React.FC<TopNotchNavProps> = ({
 
   const handleMascotClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    playTactileClick(1.25);
     setMascotIdx((prev) => (prev + 1) % MASCOT_COLORS.length);
     setShowQuip(true);
     onSelectTab('index');
@@ -59,6 +73,15 @@ export const TopNotchNav: React.FC<TopNotchNavProps> = ({
       })
     );
     window.setTimeout(() => setShowQuip(false), 1800);
+  };
+
+  const handleToggleSfx = () => {
+    const next = !sfxOn;
+    setSfxOn(next);
+    setSoundEnabled(next);
+    if (next) {
+      playTactileClick(1.15);
+    }
   };
 
   const currentColor = MASCOT_COLORS[mascotIdx];
@@ -86,17 +109,17 @@ export const TopNotchNav: React.FC<TopNotchNavProps> = ({
           aria-label="Main navigation"
           className="relative flex flex-col items-center font-mono text-[12px] transition-[background-color,border-color,box-shadow,backdrop-filter] duration-250 ease-out bg-[var(--fg)] text-[var(--bg)] rounded-b-[22px] px-4 pt-[9px] pb-[11px] sm:px-5 shadow-[0_10px_30px_rgba(0,0,0,0.55)]"
         >
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
             {/* Pixel Avatar / Status Home Link with Interactive Color Cycle */}
             <a
               href="#top"
               onClick={handleMascotClick}
               aria-label="Home · Shaik Vahid Basha"
-              className="relative flex items-center pl-1 pr-1.5 sm:pr-2 transition-opacity focus-visible:rounded opacity-95 hover:opacity-100"
+              className="relative flex items-center pl-1 pr-1 sm:pr-1.5 transition-opacity focus-visible:rounded opacity-95 hover:opacity-100"
             >
               <span
                 className="inline-flex items-center justify-center relative group cursor-pointer select-none w-4.5 h-4.5 transition-transform active:scale-90"
-                title="Status: open for frontend & product engineering roles (click to ping)"
+                title="Status: open for Product, Strategy & Systems roles (click to ping)"
                 aria-label="Status: open for chats"
                 role="status"
               >
@@ -176,11 +199,44 @@ export const TopNotchNav: React.FC<TopNotchNavProps> = ({
 
             <div className="hidden sm:block w-px h-3 my-auto bg-[var(--bg)]/20" aria-hidden="true" />
 
-            {/* Action Icons */}
+            {/* Action Icons & Tactile Controls */}
             <div className="flex items-center gap-1 sm:gap-1.5">
               <button
                 type="button"
-                onClick={onOpenBooking}
+                onClick={() => {
+                  playTactileClick(1.1);
+                  onOpenCmdPalette();
+                }}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[var(--bg)]/20 text-[10px] transition-all focus-visible:outline-2 focus-visible:outline-current cursor-pointer text-[var(--bg)]/80 hover:text-[var(--bg)] hover:bg-[var(--bg)]/10 whitespace-nowrap shrink-0"
+                aria-label="Open Command Palette (Cmd+K)"
+                title="Open Command Palette (Cmd+K)"
+              >
+                <Terminal className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
+                <span>⌘K</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleToggleSfx}
+                aria-pressed={sfxOn}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] transition-all focus-visible:outline-2 focus-visible:outline-current cursor-pointer text-[var(--bg)]/75 hover:text-[var(--bg)] whitespace-nowrap shrink-0"
+                aria-label={sfxOn ? 'Mute tactile sound effects' : 'Enable tactile sound effects'}
+                title={sfxOn ? 'Tactile Web Audio: ON' : 'Tactile Web Audio: MUTED'}
+              >
+                {sfxOn ? (
+                  <Volume2 className="w-3 h-3 shrink-0" aria-hidden="true" />
+                ) : (
+                  <VolumeX className="w-3 h-3 shrink-0 opacity-60" aria-hidden="true" />
+                )}
+                <span className="hidden md:inline">{sfxOn ? 'SFX' : 'MUTE'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  playTactileClick(1.05);
+                  onOpenBooking();
+                }}
                 className="p-1.5 rounded-full transition-all focus-visible:outline-2 focus-visible:outline-current cursor-pointer text-[var(--bg)]/70 hover:text-[var(--bg)]"
                 aria-label="Book a call"
                 title="Book a call"
@@ -190,7 +246,10 @@ export const TopNotchNav: React.FC<TopNotchNavProps> = ({
 
               <button
                 type="button"
-                onClick={onOpenLlms}
+                onClick={() => {
+                  playTactileClick(1.05);
+                  onOpenLlms();
+                }}
                 className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] transition-all focus-visible:outline-2 focus-visible:outline-current cursor-pointer text-[var(--bg)]/70 hover:text-[var(--bg)] whitespace-nowrap shrink-0"
                 aria-label="For the robots (and the curious)"
                 title="For the robots (and the curious)"
@@ -201,7 +260,10 @@ export const TopNotchNav: React.FC<TopNotchNavProps> = ({
 
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen((v) => !v)}
+                onClick={() => {
+                  playTactileClick(1.0);
+                  setMobileMenuOpen((v) => !v);
+                }}
                 className="sm:hidden p-1.5 rounded-full transition-opacity focus-visible:outline-2 focus-visible:outline-current text-[var(--bg)]/80 hover:text-[var(--bg)]"
                 aria-label="Toggle navigation menu"
                 aria-expanded={mobileMenuOpen}
@@ -238,6 +300,7 @@ export const TopNotchNav: React.FC<TopNotchNavProps> = ({
               <button
                 type="button"
                 onClick={() => {
+                  playTactileClick(1.05);
                   setMobileMenuOpen(false);
                   onOpenLlms();
                 }}

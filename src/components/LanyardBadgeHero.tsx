@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { RotateCw, Calendar, ArrowRight, FileText, ArrowUpRight, Disc3 } from 'lucide-react';
+import { RotateCw, Calendar, ArrowRight, FileText, ArrowUpRight, Disc3, Mail } from 'lucide-react';
 import {
   createDualStrapNodes,
   createDualStrapConstraints,
@@ -9,10 +9,12 @@ import {
   DualStrapNode,
 } from '../utils/portfolioLogic';
 import { PROFILE_DATA } from '../utils/portfolioData';
+import { playTactileClick, playLanyardWhoosh } from '../utils/soundEngine';
 
 interface LanyardBadgeHeroProps {
   onOpenBooking: () => void;
   onOpenLlms: () => void;
+  onOpenCmdPalette?: () => void;
   onNavigateSection: (sectionId: string) => void;
 }
 
@@ -336,6 +338,7 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
   const contribGrid = useMemo(() => generateDeterministicContributions(34, 7), []);
 
   const triggerFlip = () => {
+    playTactileClick(1.12);
     setIsFlipped((prev) => {
       const next = !prev;
       targetFlipDegRef.current = next ? 180 : 0;
@@ -395,18 +398,18 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
 
       if (isMobile) {
         const availW = Math.min(stageW - 28, 356);
-        const maxH = Math.max(360, stageH - topClearance - 150);
-        const scaleMobile = Math.min(1, availW / 340, maxH / 440);
+        const maxH = Math.max(350, stageH - topClearance - 150);
+        const scaleMobile = Math.min(1, availW / 340, maxH / 410);
         cardW = Math.round(340 * scaleMobile);
-        cardH = Math.round(440 * scaleMobile);
+        cardH = Math.round(410 * scaleMobile);
         card.style.setProperty('--card-w', `${cardW}px`);
         card.style.setProperty('--card-h', `${cardH}px`);
         card.style.setProperty('--card-scale', `${scaleMobile}`);
       } else {
-        const targetW = Math.max(520, stageW * 0.5 + 20);
-        const maxByHeight = (stageH - topClearance + 40) / 0.98;
-        cardW = Math.round(Math.max(300, Math.min(targetW, 760, maxByHeight)));
-        cardH = Math.round(cardW * 0.68);
+        const targetW = Math.max(540, stageW * 0.48 + 24);
+        const maxByHeight = (stageH - topClearance + 24) / 0.96;
+        cardW = Math.round(Math.max(320, Math.min(targetW, 680, maxByHeight)));
+        cardH = Math.round(cardW * 0.65);
         card.style.setProperty('--card-w', `${cardW}px`);
         card.style.setProperty('--card-h', `${cardH}px`);
         card.style.setProperty('--card-scale', `${cardW / 560}`);
@@ -417,8 +420,8 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
       anchorY = 12;
       cardTopY = Math.round(
         isMobile
-          ? Math.max(172, (stageH - cardH) * 0.48)
-          : Math.max(208, (stageH - cardH) * 0.54)
+          ? Math.max(168, (stageH - cardH) * 0.46)
+          : Math.max(198, (stageH - cardH) * 0.50)
       );
     };
 
@@ -526,6 +529,8 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
       if (dist < 8 && elapsed < 400) {
         triggerFlip();
         nodes[10].ox -= 7;
+      } else if (dist >= 8) {
+        playLanyardWhoosh();
       }
       wakeLoop();
     };
@@ -561,13 +566,17 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
         }
       );
 
-      smoothVx = smoothVx * 0.85 + vxCard * 0.15;
+      smoothVx = smoothVx * 0.82 + vxCard * 0.18;
 
-      // Smooth spring lerp for flip angle
-      currentFlipDegRef.current +=
-        (targetFlipDegRef.current - currentFlipDegRef.current) * 0.12;
+      // Butter-smooth 60fps spring interpolation for flip angle
+      const flipDiff = targetFlipDegRef.current - currentFlipDegRef.current;
+      if (Math.abs(flipDiff) < 0.05) {
+        currentFlipDegRef.current = targetFlipDegRef.current;
+      } else {
+        currentFlipDegRef.current += flipDiff * 0.2;
+      }
 
-      const velocityTiltDeg = Math.max(-38, Math.min(38, smoothVx * 4.5));
+      const velocityTiltDeg = Math.max(-32, Math.min(32, smoothVx * 4.2));
       const totalFlipDeg = currentFlipDegRef.current + velocityTiltDeg;
 
       const tx = cardCenterX - cardW / 2;
@@ -577,7 +586,7 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
         2
       )}px, 0) rotate(${((angleRad * 180) / Math.PI).toFixed(3)}deg)`;
 
-      flipEl.style.transform = `rotateY(${totalFlipDeg.toFixed(2)}deg)`;
+      flipEl.style.transform = `translate3d(0, 0, 0) rotateY(${totalFlipDeg.toFixed(2)}deg)`;
 
       if (glareEl) {
         const glarePos = 50 + velocityTiltDeg * 1.4 + Math.sin(angleRad) * 40;
@@ -614,17 +623,17 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
         }
         curEyeX += (targetEyeX - curEyeX) * 0.18;
         curEyeY += (targetEyeY - curEyeY) * 0.18;
-        eyesEl.style.transform = `translate(${curEyeX.toFixed(2)}px, ${curEyeY.toFixed(
+        eyesEl.style.transform = `translate3d(${curEyeX.toFixed(2)}px, ${curEyeY.toFixed(
           2
-        )}px) scaleY(${blinkScaleY.toFixed(3)})`;
+        )}px, 0) scaleY(${blinkScaleY.toFixed(3)})`;
       }
 
-      // Render Dual-Strap V-Shaped Twisting Lanyard on 2D Canvas
+      // Render Dual-Strap V-Shaped Twisting Lanyard on 2D Canvas (lightweight 6-subdivision spline)
       ctx.clearRect(0, 0, stageW, stageH);
 
-      const leftCurve = catmullRomSpline([nodes[0], nodes[1], nodes[2], nodes[3]], 8);
-      const rightCurve = catmullRomSpline([nodes[4], nodes[5], nodes[6], nodes[3]], 8);
-      const neckCurve = catmullRomSpline([nodes[3], nodes[7], nodes[8]], 8);
+      const leftCurve = catmullRomSpline([nodes[0], nodes[1], nodes[2], nodes[3]], 6);
+      const rightCurve = catmullRomSpline([nodes[4], nodes[5], nodes[6], nodes[3]], 6);
+      const neckCurve = catmullRomSpline([nodes[3], nodes[7], nodes[8]], 6);
 
       const flipRad = (currentFlipDegRef.current * Math.PI) / 180;
       const swingTwist = angleRad * 2.2 + smoothVx * 0.1;
@@ -639,7 +648,7 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
         back: '#cfcdc6',
         stitching: 'rgba(0,0,0,0.3)',
         print: {
-          text: 'SHAIK VAHID BASHA · FRONTEND ENGINEER · ',
+          text: 'SHAIK VAHID BASHA · IIT MADRAS · SYNCPRO · RAILRAKSHA · ',
           color: 'rgba(18,18,18,0.88)',
           font: `500 ${Math.round(11 * K)}px var(--font-mono), monospace`,
           scale: K,
@@ -668,7 +677,7 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
 
       activeFrames++;
       const flipDelta = Math.abs(targetFlipDegRef.current - currentFlipDegRef.current);
-      if (isDraggingLocal || flipDelta > 0.25 || activeFrames < 180) {
+      if (isDraggingLocal || flipDelta > 0.1 || activeFrames < 180) {
         rafId = window.requestAnimationFrame(stepAndRender);
       } else {
         isRunning = false;
@@ -684,8 +693,14 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
     }
 
     const onScrollOrWake = () => wakeLoop();
+    const onFlipCmd = () => {
+      triggerFlip();
+      nodes[10].ox -= 16;
+      wakeLoop();
+    };
     window.addEventListener('scroll', onScrollOrWake, { passive: true });
     window.addEventListener('lanyard-wake', onScrollOrWake);
+    window.addEventListener('lanyard-flip-cmd', onFlipCmd);
 
     wakeLoop();
 
@@ -697,6 +712,7 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
       window.removeEventListener('pointerup', onWindowPointerUp);
       window.removeEventListener('scroll', onScrollOrWake);
       window.removeEventListener('lanyard-wake', onScrollOrWake);
+      window.removeEventListener('lanyard-flip-cmd', onFlipCmd);
       card.removeEventListener('pointerdown', onCardPointerDown);
     };
   }, []);
@@ -712,7 +728,7 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
     <section
       id="hero"
       data-section="hero"
-      className="relative flex min-h-[100svh] w-full flex-col justify-end pb-8"
+      className="relative flex min-h-[100svh] w-full flex-col justify-end pb-6"
     >
       <div className="pointer-events-none absolute inset-0 z-20">
         <div className="w-full h-full">
@@ -735,25 +751,30 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
 
               <div className="badge-perspective">
                 <div ref={flipRef} className="badge-flip">
-                  {/* FRONT FACE */}
+                  {/* FRONT FACE — Tightened geometry & zero text overflow */}
                   <div
-                    className="badge-face front p-6 sm:p-8 flex flex-col justify-between"
+                    className="badge-face front p-5 sm:p-6 md:p-7 flex flex-col justify-between overflow-hidden"
                     style={{
                       pointerEvents: isFlipped ? 'none' : 'auto',
                     }}
                   >
-                    {/* Top Row: Name + 3D Extruded Starburst Mascot */}
-                    <div className="flex items-start justify-between gap-4 relative z-10">
-                      <div>
-                        <div className="font-mono text-[11px] sm:text-xs text-white tracking-[0.14em] uppercase font-medium">
-                          {PROFILE_DATA.name}
+                    {/* Top Row: Name + Institution + Role Line + Mascot */}
+                    <div className="flex items-start justify-between gap-3 relative z-10 shrink-0">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-[11px] sm:text-xs text-white tracking-[0.12em] uppercase font-medium">
+                            {PROFILE_DATA.name}
+                          </span>
+                          <span className="font-mono text-[10.5px] text-zinc-400 tracking-wider uppercase">
+                            · {PROFILE_DATA.institution}
+                          </span>
                         </div>
-                        <div className="font-mono text-[11px] sm:text-xs text-zinc-400 mt-1">
-                          {PROFILE_DATA.roleLine}
+                        <div className="font-mono text-[10.5px] sm:text-xs text-zinc-400 mt-1 flex flex-wrap items-center gap-2">
+                          <span>{PROFILE_DATA.roleLine}</span>
                         </div>
                       </div>
 
-                      <div className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 shrink-0 pointer-events-none">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 shrink-0 pointer-events-none">
                         <svg
                           viewBox="0 0 134 134"
                           xmlns="http://www.w3.org/2000/svg"
@@ -799,121 +820,139 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
                           ref={eyesRef}
                           className="absolute top-[40%] left-[50%] pointer-events-none"
                         >
-                          <div className="w-2 sm:w-2.5 h-6 sm:h-8 rounded-full bg-white absolute -top-3 sm:-top-4 -left-3.5 sm:-left-4 shadow-sm" />
-                          <div className="w-2 sm:w-2.5 h-6 sm:h-8 rounded-full bg-white absolute -top-3 sm:-top-4 left-1.5 sm:left-2 shadow-sm" />
+                          <div className="w-2 sm:w-2.5 h-5 sm:h-6 rounded-full bg-white absolute -top-2.5 sm:-top-3 -left-3 sm:-left-3.5 shadow-sm" />
+                          <div className="w-2 sm:w-2.5 h-5 sm:h-6 rounded-full bg-white absolute -top-2.5 sm:-top-3 left-1.5 sm:left-2 shadow-sm" />
                         </div>
                       </div>
                     </div>
 
-                    {/* Center Headline & Bio */}
-                    <div className="my-auto py-2 sm:py-3 max-w-[82%] sm:max-w-[74%] relative z-10">
-                      <h1 className="text-xl sm:text-2xl md:text-[31px] font-normal tracking-[-0.035em] text-white leading-[1.12] [text-wrap:balance]">
+                    {/* Center Headline & 2-Line Curated Bio */}
+                    <div className="my-auto py-1 max-w-[92%] sm:max-w-[84%] relative z-10 min-h-0">
+                      <h1 className="text-[17px] sm:text-[22px] md:text-[26px] font-normal tracking-[-0.03em] text-white leading-[1.15] [text-wrap:balance]">
                         {PROFILE_DATA.headlinePrefix}
                         <span className="badge-accent">{PROFILE_DATA.headlineAccent}</span>
                       </h1>
-                      <p className="mt-3 sm:mt-4 text-xs sm:text-[13.5px] text-zinc-300 leading-[1.6] line-clamp-4 sm:line-clamp-none">
+                      <p className="mt-2 sm:mt-2.5 text-[11.5px] sm:text-[12.5px] text-zinc-300 leading-[1.52] line-clamp-2">
                         {PROFILE_DATA.bio}
                       </p>
                     </div>
 
-                    {/* Bottom Chips & Flip Cue */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10 sm:border-t-0 relative z-10">
-                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 font-mono text-[10px] sm:text-[11px] text-zinc-200">
+                    {/* Bottom Credentials & Flip Cue (with >= 16px bottom clearance from container p-5/p-6/p-7) */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10 relative z-10 shrink-0">
+                      <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px] sm:text-[10.5px] text-zinc-200">
                         {PROFILE_DATA.chips.map((chip) => (
                           <span
                             key={chip}
-                            className="px-2.5 py-1 rounded-full bg-white/[0.05] border border-white/25 whitespace-nowrap"
+                            className="px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/25 whitespace-nowrap"
                           >
                             {chip}
                           </span>
                         ))}
                       </div>
 
-                      <div className="font-mono text-[11px] text-zinc-400 inline-flex items-center gap-1.5 whitespace-nowrap">
+                      <div className="font-mono text-[10.5px] text-zinc-400 inline-flex items-center gap-1.5 whitespace-nowrap">
                         <span>psst, flip me</span>
                         <RotateCw className="w-3 h-3 text-white/60" aria-hidden="true" />
                       </div>
                     </div>
                   </div>
 
-                  {/* BACK FACE */}
+                  {/* BACK FACE — Clean Heatmap, Quick Links & Status without vertical overflow */}
                   <div
-                    className="badge-face back p-5 sm:p-7 flex flex-col justify-between text-white"
+                    className="badge-face back p-5 sm:p-6 md:p-7 flex flex-col justify-between text-white overflow-hidden"
                     style={{
                       pointerEvents: isFlipped ? 'auto' : 'none',
                     }}
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between gap-2 relative z-10">
-                      <div className="font-mono text-[11px] text-zinc-300 tracking-[0.14em] uppercase">
-                        Find me
+                    <div className="flex items-center justify-between gap-2 relative z-10 shrink-0">
+                      <div className="font-mono text-[10.5px] sm:text-[11px] text-zinc-200 tracking-[0.12em] uppercase">
+                        GITHUB.COM/VAHID-KANNA · TELEMETRY
                       </div>
-                      <div className="font-mono text-[10px] text-zinc-400 tracking-[0.08em] uppercase truncate">
-                        GITHUB · SHIPPING COMMITS (2025–2026)
+                      <div className="font-mono text-[10px] text-zinc-400 tracking-[0.06em] uppercase truncate">
+                        IIT MADRAS (&apos;27) · CHENNAI
                       </div>
                     </div>
 
                     {/* GitHub Contribution Heatmap Grid */}
-                    <div className="my-2 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 overflow-x-auto relative z-10">
-                      <div className="flex justify-between gap-[3px] min-w-[320px]">
-                        {contribGrid.map((col, wIdx) => (
-                          <div key={wIdx} className="flex flex-col gap-[3px]">
-                            {col.map((level, dIdx) => (
-                              <div
-                                key={dIdx}
-                                data-level={level}
-                                title={`Week ${wIdx + 1}, Day ${dIdx + 1}: Level ${level} activity`}
-                                className="badge-contrib-cell w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[2px] transition-transform hover:scale-125"
-                              />
-                            ))}
-                          </div>
-                        ))}
+                    <div className="my-1 relative z-10 shrink-0">
+                      <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/10 overflow-x-auto">
+                        <div className="flex justify-between gap-[3px] min-w-[300px]">
+                          {contribGrid.map((col, wIdx) => (
+                            <div key={wIdx} className="flex flex-col gap-[3px]">
+                              {col.map((level, dIdx) => (
+                                <div
+                                  key={dIdx}
+                                  data-level={level}
+                                  title={`Week ${wIdx + 1}, Day ${dIdx + 1}: Level ${level} activity`}
+                                  className="badge-contrib-cell w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-[2px] transition-transform hover:scale-125"
+                                />
+                              ))}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Social Links & Quick Actions + Live Status Card */}
-                    <div className="flex flex-col gap-3 relative z-10">
-                      <div className="flex flex-wrap items-center gap-2">
+                    {/* Real Ventures, Socials & Quick Actions */}
+                    <div className="flex flex-col gap-2 relative z-10 min-h-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <a
-                          href={PROFILE_DATA.socials.x}
+                          href={PROFILE_DATA.socials.syncproLive}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] text-white/90 bg-white/[0.06] border border-white/15 hover:bg-white/15 transition-colors whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] sm:text-[10.5px] text-emerald-200 bg-emerald-500/15 border border-emerald-300/30 hover:bg-emerald-500/25 transition-colors whitespace-nowrap"
                         >
-                          <span>X</span>
+                          <span>SyncPro.org</span>
+                          <span className="opacity-70 text-[9px]">↗</span>
+                        </a>
+                        <a
+                          href={PROFILE_DATA.socials.railrakshaLive}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] sm:text-[10.5px] text-cyan-200 bg-cyan-500/15 border border-cyan-300/30 hover:bg-cyan-500/25 transition-colors whitespace-nowrap"
+                        >
+                          <span>RailRaksha.tech</span>
+                          <span className="opacity-70 text-[9px]">↗</span>
+                        </a>
+                        <a
+                          href={PROFILE_DATA.socials.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] sm:text-[10.5px] text-white/90 bg-white/[0.06] border border-white/15 hover:bg-white/15 transition-colors whitespace-nowrap"
+                        >
+                          <span>GitHub @vahid-kanna</span>
                           <span className="opacity-60 text-[9px]">↗</span>
                         </a>
                         <a
                           href={PROFILE_DATA.socials.linkedin}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] text-white/90 bg-white/[0.06] border border-white/15 hover:bg-white/15 transition-colors whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] sm:text-[10.5px] text-white/90 bg-white/[0.06] border border-white/15 hover:bg-white/15 transition-colors whitespace-nowrap"
                         >
                           <span>LinkedIn</span>
-                          <span className="opacity-60 text-[9px]">↗</span>
-                        </a>
-                        <a
-                          href={PROFILE_DATA.socials.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] text-white/90 bg-white/[0.06] border border-white/15 hover:bg-white/15 transition-colors whitespace-nowrap"
-                        >
-                          <span>GitHub</span>
                           <span className="opacity-60 text-[9px]">↗</span>
                         </a>
                         <a
                           href={PROFILE_DATA.resumePdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-mono text-[11px] text-purple-200 bg-purple-500/20 border border-purple-300/30 hover:bg-purple-500/30 transition-colors whitespace-nowrap"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] sm:text-[10.5px] text-purple-200 bg-purple-500/20 border border-purple-300/30 hover:bg-purple-500/30 transition-colors whitespace-nowrap"
                         >
                           <span>Resume PDF</span>
                           <span className="opacity-70 text-[9px]">↗</span>
                         </a>
+                        <a
+                          href={`mailto:${PROFILE_DATA.email}`}
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] sm:text-[10.5px] text-white/90 bg-white/[0.06] border border-white/15 hover:bg-white/15 transition-colors whitespace-nowrap"
+                        >
+                          <Mail className="w-2.5 h-2.5 opacity-75" />
+                          <span>Email</span>
+                        </a>
                       </div>
 
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
-                        <div className="grid grid-cols-2 sm:flex sm:flex-col gap-1.5 font-mono text-xs text-white/90">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-0.5">
+                        <div className="grid grid-cols-2 sm:flex sm:flex-col gap-1 font-mono text-[11px] text-white/90">
                           <button
                             type="button"
                             data-badge-action="true"
@@ -924,7 +963,7 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
                             className="inline-flex items-center gap-2 hover:text-purple-300 transition-colors text-left cursor-pointer whitespace-nowrap"
                           >
                             <Calendar className="w-3.5 h-3.5 shrink-0" />
-                            <span>book a call</span>
+                            <span>book a strategy chat</span>
                           </button>
                           <button
                             type="button"
@@ -936,7 +975,7 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
                             className="inline-flex items-center gap-2 hover:text-purple-300 transition-colors text-left cursor-pointer whitespace-nowrap"
                           >
                             <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-                            <span>writing</span>
+                            <span>product &amp; quant dispatches</span>
                           </button>
                           <button
                             type="button"
@@ -948,7 +987,7 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
                             className="inline-flex items-center gap-2 hover:text-purple-300 transition-colors text-left cursor-pointer whitespace-nowrap"
                           >
                             <FileText className="w-3.5 h-3.5 shrink-0" />
-                            <span>llms.txt</span>
+                            <span>llms.txt dossier</span>
                           </button>
                           <button
                             type="button"
@@ -964,19 +1003,19 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
                           </button>
                         </div>
 
-                        {/* Now Playing Widget */}
-                        <div className="hidden sm:flex items-center gap-3 p-3 rounded-xl bg-zinc-900/90 border border-white/15 max-w-[290px] w-full shadow-lg">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/30 via-pink-500/20 to-cyan-500/30 border border-white/15 flex items-center justify-center shrink-0">
-                            <Disc3 className="w-5 h-5 text-purple-200 animate-spin" style={{ animationDuration: '8s' }} />
+                        {/* Status / Telemetry Monitor */}
+                        <div className="hidden sm:flex items-center gap-2.5 p-2 rounded-xl bg-zinc-900/90 border border-white/15 max-w-[275px] w-full shadow-lg">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/30 via-pink-500/20 to-cyan-500/30 border border-white/15 flex items-center justify-center shrink-0">
+                            <Disc3 className="w-4 h-4 text-purple-200 animate-spin" style={{ animationDuration: '8s' }} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="font-mono text-[9px] uppercase tracking-wider text-purple-300 truncate">
                               {PROFILE_DATA.currentlyPlaying.status}
                             </div>
-                            <div className="text-xs font-medium text-white truncate mt-0.5">
-                              {PROFILE_DATA.currentlyPlaying.track} · {PROFILE_DATA.currentlyPlaying.artist}
+                            <div className="text-[11px] font-medium text-white truncate mt-0.5">
+                              {PROFILE_DATA.currentlyPlaying.track}
                             </div>
-                            <div className="text-[10px] text-zinc-400 truncate">
+                            <div className="text-[9.5px] text-zinc-400 truncate">
                               {PROFILE_DATA.currentlyPlaying.album}
                             </div>
                           </div>
@@ -985,9 +1024,9 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
                     </div>
 
                     {/* Back Footer */}
-                    <div className="pt-2 border-t border-white/10 flex items-center justify-between font-mono text-[10px] text-white/40 relative z-10">
-                      <span>{PROFILE_DATA.name} · {PROFILE_DATA.rollNo}</span>
-                      <span>click anywhere on card to flip back ↺</span>
+                    <div className="pt-1.5 border-t border-white/10 flex items-center justify-between font-mono text-[10px] text-white/45 relative z-10 shrink-0">
+                      <span>{PROFILE_DATA.name} · {PROFILE_DATA.institution}</span>
+                      <span>click card to flip back ↺</span>
                     </div>
                   </div>
                 </div>
@@ -997,8 +1036,17 @@ export const LanyardBadgeHero: React.FC<LanyardBadgeHeroProps> = ({
         </div>
       </div>
 
-      {/* Bottom Scroll Hint */}
-      <div className="relative z-10 mb-3 flex justify-center">
+      {/* hancore.dev-inspired Monospace Status Monitors + Scroll Cue */}
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-5 sm:px-8 flex flex-col items-center gap-3">
+        <div className="hidden md:grid grid-cols-4 gap-3 w-full border-t border-[var(--line)] pt-3 font-mono text-[10.5px] text-[var(--mut)] tabular-nums">
+          {PROFILE_DATA.statusMonitors.map((mon) => (
+            <div key={mon.label} className="flex items-center gap-2 truncate">
+              <span className="text-[var(--fg)]/50 uppercase">{mon.label}</span>
+              <span className="text-[var(--fg)]/85 truncate">{mon.value}</span>
+            </div>
+          ))}
+        </div>
+
         <a
           href="#work"
           onClick={(e) => {

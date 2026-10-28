@@ -225,7 +225,7 @@ export interface ProjectItem {
   tags: string[];
   codeUrl: string;
   liveUrl: string;
-  category: 'frontend' | 'ai-systems' | 'product';
+  category: 'product' | 'infrastructure' | 'quant' | 'ai-systems' | 'frontend';
   architectureNotes: string[];
 }
 
@@ -265,7 +265,7 @@ export function filterEssaysByTag(essays: EssayItem[], tag: string): EssayItem[]
 
 export function generateDeterministicContributions(weeks = 34, daysPerWeek = 7): number[][] {
   const grid: number[][] = [];
-  let seed = 23115; // CE23B115 deterministic seed
+  let seed = 202701; // Deterministic contribution seed
   for (let w = 0; w < weeks; w++) {
     const col: number[] = [];
     for (let d = 0; d < daysPerWeek; d++) {
@@ -285,3 +285,104 @@ export function generateDeterministicContributions(weeks = 34, daysPerWeek = 7):
   }
   return grid;
 }
+
+export interface SyncProSimulationInput {
+  projectValueCr: number; // 10 to 200 Cr
+  scheduleMonths: number; // 12 to 36 months
+  weeklyDelayVariance: number; // 1 to 6 weeks
+}
+
+export interface SyncProSimulationOutput {
+  dailyHoldingLossInr: number; // ₹34,000 to ₹1,50,000/day
+  riskIndex: 'Low' | 'Elevated' | 'Critical';
+  daysSaved: number;
+  netCapitalSavedLakhs: number;
+  netCapitalSavedCr: string;
+}
+
+export function calculateSyncProRisk(
+  input: SyncProSimulationInput
+): SyncProSimulationOutput {
+  const valCr = Math.max(10, Math.min(200, input.projectValueCr));
+  const months = Math.max(12, Math.min(36, input.scheduleMonths));
+  const varianceWks = Math.max(1, Math.min(6, input.weeklyDelayVariance));
+
+  // Scale daily holding loss between ₹34,000/day and ₹1,50,000/day based on capital intensity & schedule compression
+  const intensity = (valCr - 10) / 190; // 0..1
+  const compression = (36 - months) / 24; // 0..1
+  const varianceFactor = (varianceWks - 1) / 5; // 0..1
+  const blended = Math.min(
+    1,
+    Math.max(0, intensity * 0.68 + compression * 0.17 + varianceFactor * 0.15)
+  );
+  const dailyHoldingLossInr = Math.round((34000 + blended * (150000 - 34000)) / 500) * 500;
+
+  // Risk index classification
+  const riskScore = varianceWks * 14 + (valCr / months) * 2.5;
+  let riskIndex: 'Low' | 'Elevated' | 'Critical' = 'Low';
+  if (varianceWks >= 4 || riskScore >= 62) {
+    riskIndex = 'Critical';
+  } else if (varianceWks >= 2 || riskScore >= 36) {
+    riskIndex = 'Elevated';
+  }
+
+  // Days saved via SyncPro AI delay forewarning & daily site-to-schedule reconciliation
+  const daysSaved = Math.round(8 + varianceWks * 4.5 + (months / 12) * 2);
+
+  // Total capital saved (holding loss + LD mitigation)
+  const totalSavedInr = dailyHoldingLossInr * daysSaved * (1 + varianceWks * 0.08);
+  const netCapitalSavedLakhs = Math.round((totalSavedInr / 100000) * 10) / 10;
+  const netCapitalSavedCr = (totalSavedInr / 10000000).toFixed(2);
+
+  return {
+    dailyHoldingLossInr,
+    riskIndex,
+    daysSaved,
+    netCapitalSavedLakhs,
+    netCapitalSavedCr,
+  };
+}
+
+export type VectorMode = 'approaching' | 'receding';
+
+export interface RailRakshaVectorState {
+  mode: VectorMode;
+  trainSpeedKmh: number;
+  distanceMeters: number;
+  radialVelocityMs: number;
+  dotProduct: number;
+  warningTriggered: boolean;
+  timeToImpactSec: number | null;
+  statusLabel: string;
+}
+
+export function evaluateRailRakshaVector(
+  mode: VectorMode,
+  distanceMeters = 420,
+  trainSpeedKmh = 130
+): RailRakshaVectorState {
+  const speedMs = +(trainSpeedKmh / 3.6).toFixed(1); // 130 km/h -> 36.1 m/s
+  const dist = Math.max(40, Math.min(1200, distanceMeters));
+  // Let r_vec be vector from crew to train, and v_vec be train velocity vector.
+  // Approaching: v_vec points opposite to r_vec -> dot(r_hat, v_vec) < 0
+  // Receding: v_vec points in same direction as r_vec -> dot(r_hat, v_vec) > 0
+  const isApproaching = mode === 'approaching';
+  const radialVelocityMs = isApproaching ? -speedMs : speedMs;
+  const dotProduct = Math.round(dist * radialVelocityMs);
+  const warningTriggered = dotProduct < 0;
+  const timeToImpactSec = isApproaching ? +(dist / speedMs).toFixed(1) : null;
+
+  return {
+    mode,
+    trainSpeedKmh,
+    distanceMeters: dist,
+    radialVelocityMs,
+    dotProduct,
+    warningTriggered,
+    timeToImpactSec,
+    statusLabel: warningTriggered
+      ? 'WARNING TRIGGERED · APPROACHING 130 KM/H VECTOR'
+      : 'FILTERED: 0 FALSE ALARM · RECEDING VECTOR SUPPRESSED',
+  };
+}
+

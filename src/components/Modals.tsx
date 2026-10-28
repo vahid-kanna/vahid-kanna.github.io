@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FileText,
   Copy,
@@ -10,13 +10,21 @@ import {
   Code2,
   Clock,
   Send,
+  Terminal,
+  Search,
 } from 'lucide-react';
 import { ProjectItem, EssayItem } from '../utils/portfolioLogic';
 import {
   LLMS_TXT_SHORT,
   LLMS_TXT_FULL,
   PROFILE_DATA,
+  PROJECTS_DATA,
 } from '../utils/portfolioData';
+import {
+  SyncProSimulatorWidget,
+  RailRakshaVectorWidget,
+} from './ProductSimulators';
+import { playTactileClick, playLanyardWhoosh } from '../utils/soundEngine';
 
 interface LlmsModalProps {
   isOpen: boolean;
@@ -33,6 +41,7 @@ export const LlmsModal: React.FC<LlmsModalProps> = ({ isOpen, onClose }) => {
   const lines = rawText.split('\n');
 
   const handleCopy = () => {
+    playTactileClick(1.1);
     navigator.clipboard?.writeText(rawText).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
@@ -99,7 +108,10 @@ export const LlmsModal: React.FC<LlmsModalProps> = ({ isOpen, onClose }) => {
 
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => {
+                  playTactileClick(0.9);
+                  onClose();
+                }}
                 className="grid size-9 place-items-center rounded-lg text-white/60 transition-colors hover:bg-white/10 hover:text-white cursor-pointer"
                 aria-label="Close document"
               >
@@ -115,7 +127,10 @@ export const LlmsModal: React.FC<LlmsModalProps> = ({ isOpen, onClose }) => {
             <button
               type="button"
               aria-pressed={docMode === 'short'}
-              onClick={() => setDocMode('short')}
+              onClick={() => {
+                playTactileClick(1.0);
+                setDocMode('short');
+              }}
               className={`relative rounded-t-lg px-3 py-2 font-mono text-[11px] transition-colors cursor-pointer whitespace-nowrap ${
                 docMode === 'short'
                   ? 'bg-[#f1eee6] text-[#171716] font-medium'
@@ -127,7 +142,10 @@ export const LlmsModal: React.FC<LlmsModalProps> = ({ isOpen, onClose }) => {
             <button
               type="button"
               aria-pressed={docMode === 'full'}
-              onClick={() => setDocMode('full')}
+              onClick={() => {
+                playTactileClick(1.05);
+                setDocMode('full');
+              }}
               className={`relative rounded-t-lg px-3 py-2 font-mono text-[11px] transition-colors cursor-pointer whitespace-nowrap ${
                 docMode === 'full'
                   ? 'bg-[#f1eee6] text-[#171716] font-medium'
@@ -189,11 +207,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) =
       setErrorMsg('Please enter your name and a valid email address.');
       return;
     }
+    playTactileClick(1.2);
     setErrorMsg('');
     setSubmitted(true);
   };
 
   const resetAndClose = () => {
+    playTactileClick(0.9);
     setSubmitted(false);
     setErrorMsg('');
     onClose();
@@ -246,12 +266,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) =
             <div className="pt-3 flex flex-col gap-2 font-mono text-xs">
               <a
                 href={`mailto:${PROFILE_DATA.email}?subject=${encodeURIComponent(
-                  `Coffee Chat with ${senderName} (${selectedSlot})`
-                )}&body=${encodeURIComponent(note || 'Hi Vahid, would love to chat about frontend engineering roles!')}`}
+                  `Strategy / Product Chat with ${senderName} (${selectedSlot})`
+                )}&body=${encodeURIComponent(note || 'Hi Vahid, would love to connect regarding Product Management, Strategy, or Venture systems!')}`}
                 className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[var(--fg)] text-[var(--bg)] font-medium hover:opacity-90 transition-opacity"
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>Send Direct Email Backup</span>
+                <span>Send Direct Email ({PROFILE_DATA.email})</span>
               </a>
               <button
                 type="button"
@@ -270,10 +290,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) =
               </div>
               <div>
                 <h3 className="text-base font-medium text-[var(--fg)] leading-snug">
-                  Grab a virtual coffee
+                  Strategy &amp; Product Coffee Chat
                 </h3>
                 <p className="text-xs text-[var(--mut)]">
-                  Open for frontend engineering &amp; product roles · 20 min chat
+                  Product Management · Strategy · Quant &amp; Infrastructure AI · 20 min
                 </p>
               </div>
             </div>
@@ -345,7 +365,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose }) =
                   rows={2}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Frontend role, system architecture chat, or project collab..."
+                  placeholder="Product role, venture strategy chat, or infrastructure AI collab..."
                   className="w-full px-3 py-2 rounded-xl border border-[var(--line)] bg-transparent text-sm text-[var(--fg)] focus:outline-2 focus:outline-[var(--fg)] resize-none"
                 />
               </div>
@@ -391,14 +411,17 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-      onClick={onClose}
+      onClick={() => {
+        playTactileClick(0.9);
+        onClose();
+      }}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="project-modal-title"
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-2xl border border-[var(--line)] bg-[var(--bg)] text-[var(--fg)] shadow-2xl p-6 sm:p-8 font-sans"
+        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-[var(--line)] bg-[var(--bg)] text-[var(--fg)] shadow-2xl p-6 sm:p-8 font-sans"
       >
         <div className="flex items-center justify-between pb-4 border-b border-[var(--line)] mb-5">
           <div className="flex items-center gap-3 font-mono text-xs text-[var(--mut)] tabular-nums">
@@ -406,11 +429,14 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
             <span>·</span>
             <span>★ {project.stars}</span>
             <span>·</span>
-            <span className="uppercase text-[var(--fg)]">Case Study</span>
+            <span className="uppercase text-[var(--fg)]">Case Study &amp; PRD</span>
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              playTactileClick(0.9);
+              onClose();
+            }}
             aria-label="Close case study modal"
             className="p-1.5 rounded-full text-[var(--mut)] hover:text-[var(--fg)] hover:bg-[var(--line)]/50 cursor-pointer"
           >
@@ -425,7 +451,11 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
           {project.title}
         </h2>
 
-        <p className="text-[15px] text-[var(--fg)]/85 leading-relaxed mb-6">{project.details}</p>
+        <p className="text-[15px] text-[var(--fg)]/85 leading-relaxed mb-5">{project.details}</p>
+
+        {/* Interactive Product Simulation Widgets */}
+        {project.id === 'syncpro' && <SyncProSimulatorWidget />}
+        {project.id === 'railraksha' && <RailRakshaVectorWidget />}
 
         <div className="mb-6 p-4 rounded-xl border border-[var(--line)] bg-[var(--fg)]/[0.02]">
           <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--mut)] mb-2.5">
@@ -440,7 +470,7 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
 
         <div className="mb-6">
           <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--mut)] mb-2.5">
-            System &amp; Frontend Architecture
+            Product &amp; Systems Architecture
           </div>
           <ul className="space-y-2 text-sm text-[var(--fg)]/85 leading-relaxed">
             {project.architectureNotes.map((note) => (
@@ -462,16 +492,30 @@ export const ProjectDetailModal: React.FC<ProjectDetailModalProps> = ({ project,
             ))}
           </div>
 
-          <a
-            href={project.codeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[var(--fg)] text-[var(--bg)] font-medium hover:opacity-90 transition-opacity"
-          >
-            <Code2 className="w-3.5 h-3.5" />
-            <span>View Repository</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </a>
+          <div className="flex flex-wrap items-center gap-2.5">
+            {project.liveUrl.startsWith('http') && (
+              <a
+                href={project.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-emerald-400/40 bg-emerald-500/15 text-emerald-200 font-medium hover:bg-emerald-500/25 transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Live Platform</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </a>
+            )}
+            <a
+              href={project.codeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[var(--fg)] text-[var(--bg)] font-medium hover:opacity-90 transition-opacity"
+            >
+              <Code2 className="w-3.5 h-3.5" />
+              <span>View Repository</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -489,7 +533,10 @@ export const EssayReaderModal: React.FC<EssayReaderModalProps> = ({ essay, onClo
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-      onClick={onClose}
+      onClick={() => {
+        playTactileClick(0.9);
+        onClose();
+      }}
     >
       <article
         role="dialog"
@@ -509,7 +556,10 @@ export const EssayReaderModal: React.FC<EssayReaderModalProps> = ({ essay, onClo
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => {
+              playTactileClick(0.9);
+              onClose();
+            }}
             aria-label="Close essay reader"
             className="p-1.5 rounded-full text-[var(--mut)] hover:text-[var(--fg)] hover:bg-[var(--line)]/50 cursor-pointer"
           >
@@ -532,7 +582,7 @@ export const EssayReaderModal: React.FC<EssayReaderModalProps> = ({ essay, onClo
 
         <div className="p-4 rounded-xl border border-[var(--line)] bg-[var(--fg)]/[0.02]">
           <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--mut)] mb-2">
-            Engineering Takeaways
+            Product &amp; Systems Takeaways
           </div>
           <ul className="space-y-1.5 text-xs sm:text-sm text-[var(--fg)]/90">
             {essay.keyTakeaways.map((item) => (
@@ -544,6 +594,236 @@ export const EssayReaderModal: React.FC<EssayReaderModalProps> = ({ essay, onClo
           </ul>
         </div>
       </article>
+    </div>
+  );
+};
+
+interface CommandPaletteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSelectProject: (project: ProjectItem) => void;
+  onOpenLlms: () => void;
+  onOpenBooking: () => void;
+  onFlipBadge: () => void;
+}
+
+export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
+  isOpen,
+  onClose,
+  onSelectProject,
+  onOpenLlms,
+  onOpenBooking,
+  onFlipBadge,
+}) => {
+  const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const actions = [
+    {
+      key: '1',
+      label: 'SyncPro Case Study & Delay Risk Simulator',
+      sub: 'syncpro.org · Nirmaan IIT Madras ₹5L Finalist',
+      run: () => {
+        const p = PROJECTS_DATA.find((item) => item.id === 'syncpro');
+        if (p) onSelectProject(p);
+      },
+    },
+    {
+      key: '2',
+      label: 'RailRaksha Safety PWA & Vector Visualizer',
+      sub: 'railraksha.tech · 130 km/h Receding Vector Math',
+      run: () => {
+        const p = PROJECTS_DATA.find((item) => item.id === 'railraksha');
+        if (p) onSelectProject(p);
+      },
+    },
+    {
+      key: '3',
+      label: 'BSE / NSE Quant Alpha Terminal',
+      sub: '857K+ Filings · 301K Tests · +43.6% 12M Net ROI',
+      run: () => {
+        const p = PROJECTS_DATA.find((item) => item.id === 'quant-alpha');
+        if (p) onSelectProject(p);
+      },
+    },
+    {
+      key: '4',
+      label: 'llms.txt AI Dossier',
+      sub: 'Machine-readable plain-text context for AI agents & recruiters',
+      run: () => onOpenLlms(),
+    },
+    {
+      key: 'R',
+      label: 'Download Product Management Resume PDF',
+      sub: "Shaik Vahid Basha · IIT Madras ('27)",
+      run: () => {
+        const a = document.createElement('a');
+        a.href = PROFILE_DATA.resumePdfUrl;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.click();
+      },
+    },
+    {
+      key: 'F',
+      label: 'Flip ID Badge (Trigger Verlet Swing)',
+      sub: '11-node Dual-Strap Verlet Physics + Impulse Wave',
+      run: () => {
+        playLanyardWhoosh();
+        onFlipBadge();
+      },
+    },
+    {
+      key: 'B',
+      label: 'Book a Strategy / Coffee Chat',
+      sub: 'vahidbashaunique@gmail.com · 20 min slot',
+      run: () => onOpenBooking(),
+    },
+  ];
+
+  const filtered = actions.filter(
+    (a) =>
+      a.label.toLowerCase().includes(query.toLowerCase()) ||
+      a.sub.toLowerCase().includes(query.toLowerCase()) ||
+      a.key.toLowerCase() === query.trim().toLowerCase()
+  );
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        playTactileClick(1.05);
+        setSelectedIndex((prev) => (prev + 1) % Math.max(1, filtered.length));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        playTactileClick(0.95);
+        setSelectedIndex(
+          (prev) => (prev - 1 + Math.max(1, filtered.length)) % Math.max(1, filtered.length)
+        );
+      } else if (e.key === 'Enter' && filtered[selectedIndex]) {
+        e.preventDefault();
+        playTactileClick(1.2);
+        onClose();
+        filtered[selectedIndex].run();
+      } else if (!query.trim()) {
+        const upper = e.key.toUpperCase();
+        const match = actions.find((a) => a.key === upper);
+        if (match && !(e.metaKey || e.ctrlKey || e.altKey)) {
+          e.preventDefault();
+          playTactileClick(1.2);
+          onClose();
+          match.run();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [isOpen, filtered, selectedIndex, query]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[120] flex items-start justify-center pt-[12vh] p-4 bg-black/70 backdrop-blur-md"
+      onClick={() => {
+        playTactileClick(0.9);
+        onClose();
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cmd-palette-title"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/20 bg-[#111113] text-[var(--fg)] shadow-[0_32px_90px_rgba(0,0,0,0.75)] font-mono"
+      >
+        {/* Live Status Header */}
+        <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-[#18181b] border-b border-white/10 text-[10px] uppercase tracking-wider text-[var(--mut)]">
+          <div className="flex items-center gap-2 truncate">
+            <Terminal className="w-3.5 h-3.5 text-purple-300 shrink-0" />
+            <span id="cmd-palette-title" className="truncate text-white/85">
+              SYS.TERMINAL // SHAIK VAHID BASHA · IIT MADRAS (&apos;27) · NIRMAAN LAB
+            </span>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-emerald-300 shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>ONLINE</span>
+          </span>
+        </div>
+
+        {/* Search Input */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
+          <Search className="w-4 h-4 text-[var(--mut)] shrink-0" />
+          <input
+            type="text"
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Type a command or press [1-4, R, F, B]..."
+            className="w-full bg-transparent text-xs sm:text-sm text-white placeholder:text-zinc-500 focus:outline-none font-mono"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              playTactileClick(0.9);
+              onClose();
+            }}
+            className="px-1.5 py-0.5 rounded border border-white/15 text-[10px] text-zinc-400 hover:text-white cursor-pointer"
+          >
+            ESC
+          </button>
+        </div>
+
+        {/* Actions List */}
+        <div className="max-h-[340px] overflow-y-auto p-2 divide-y divide-white/5">
+          {filtered.map((item, idx) => {
+            const active = idx === selectedIndex;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onMouseEnter={() => setSelectedIndex(idx)}
+                onClick={() => {
+                  playTactileClick(1.18);
+                  onClose();
+                  item.run();
+                }}
+                className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left transition-colors cursor-pointer ${
+                  active ? 'bg-white/[0.08] text-white' : 'text-zinc-300 hover:bg-white/[0.04]'
+                }`}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs sm:text-[13px] font-medium truncate">
+                    {item.label}
+                  </div>
+                  <div className="text-[10.5px] text-zinc-400 truncate mt-0.5">
+                    {item.sub}
+                  </div>
+                </div>
+                <kbd className="px-2 py-1 rounded-md bg-black/60 border border-white/15 text-[10.5px] text-purple-200 shrink-0">
+                  [{item.key}]
+                </kbd>
+              </button>
+            );
+          })}
+          {filtered.length === 0 && (
+            <div className="py-8 text-center text-xs text-zinc-500">
+              No matching commands found.
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 py-2 bg-[#161618] border-t border-white/10 flex items-center justify-between text-[10px] text-zinc-400">
+          <span>↑↓ to navigate · ENTER to execute</span>
+          <span>IIT Madras (&apos;27) · Product &amp; Systems</span>
+        </div>
+      </div>
     </div>
   );
 };

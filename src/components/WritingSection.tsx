@@ -22,11 +22,14 @@ export const WritingSection: React.FC<WritingSectionProps> = ({
       <header className="border-b border-[var(--line)] pb-4 mb-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
           <div className="max-w-2xl">
+            <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--mut)] mb-2">
+              SYS.DISPATCHES // PRODUCT STRATEGY, FIELD SAFETY &amp; QUANT RIGOR
+            </div>
             <h2 className="text-3xl sm:text-4xl md:text-[50px] font-normal tracking-[-0.03em] leading-[1.08] text-[var(--fg)] text-halo">
-              Writing
+              Writing &amp; Field Notes
             </h2>
             <p className="mt-2 text-sm sm:text-base text-[var(--fg)]/80 font-normal leading-relaxed text-halo">
-              Engineering dispatches on offline-first PWAs, telemetry UX, and quant backtesting.
+              Essays on building RailRaksha.tech for Indian Railways track crews, B2B construction SaaS unit economics at SyncPro.org, and False Discovery Rate (FDR) quant auditing.
             </p>
           </div>
           <div className="font-mono text-xs text-[var(--mut)] shrink-0 sm:pb-1">

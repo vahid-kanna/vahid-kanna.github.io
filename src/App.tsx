@@ -21,13 +21,16 @@ import {
   BookingModal,
   ProjectDetailModal,
   EssayReaderModal,
+  CommandPaletteModal,
 } from './components/Modals';
 import { ProjectItem, EssayItem } from './utils/portfolioLogic';
+import { playTactileClick } from './utils/soundEngine';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>('index');
   const [llmsOpen, setLlmsOpen] = useState<boolean>(false);
   const [bookingOpen, setBookingOpen] = useState<boolean>(false);
+  const [cmdPaletteOpen, setCmdPaletteOpen] = useState<boolean>(false);
   const [activeProject, setActiveProject] = useState<ProjectItem | null>(null);
   const [activeEssay, setActiveEssay] = useState<EssayItem | null>(null);
 
@@ -35,21 +38,45 @@ export default function App() {
     document.documentElement.classList.add('dark');
   }, []);
 
-  // Close modals on Escape key
+  // Global keyboard shortcuts: Escape to close modals, Cmd+K / Ctrl+K / '/' to open Command Palette
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setLlmsOpen(false);
         setBookingOpen(false);
+        setCmdPaletteOpen(false);
         setActiveProject(null);
         setActiveEssay(null);
+        return;
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        playTactileClick(1.15);
+        setCmdPaletteOpen((prev) => !prev);
+        return;
+      }
+
+      const target = e.target as HTMLElement | null;
+      const isEditable =
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable);
+
+      if (!isEditable && e.key === '/' && !cmdPaletteOpen) {
+        e.preventDefault();
+        playTactileClick(1.15);
+        setCmdPaletteOpen(true);
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [cmdPaletteOpen]);
 
   const handleNavigateSection = (sectionId: string) => {
+    playTactileClick(1.0);
     if (activeTab !== 'index') {
       setActiveTab('index');
       setTimeout(() => {
@@ -59,6 +86,19 @@ export default function App() {
     } else {
       const el = document.getElementById(sectionId);
       el?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleFlipBadgeFromCmd = () => {
+    if (activeTab !== 'index') {
+      setActiveTab('index');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('lanyard-flip-cmd'));
+      }, 120);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.dispatchEvent(new CustomEvent('lanyard-flip-cmd'));
     }
   };
 
@@ -81,6 +121,7 @@ export default function App() {
         onSelectTab={setActiveTab}
         onOpenLlms={() => setLlmsOpen(true)}
         onOpenBooking={() => setBookingOpen(true)}
+        onOpenCmdPalette={() => setCmdPaletteOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -90,6 +131,7 @@ export default function App() {
             <LanyardBadgeHero
               onOpenBooking={() => setBookingOpen(true)}
               onOpenLlms={() => setLlmsOpen(true)}
+              onOpenCmdPalette={() => setCmdPaletteOpen(true)}
               onNavigateSection={handleNavigateSection}
             />
 
@@ -126,6 +168,7 @@ export default function App() {
         <FooterSection
           onOpenBooking={() => setBookingOpen(true)}
           onOpenLlms={() => setLlmsOpen(true)}
+          onOpenCmdPalette={() => setCmdPaletteOpen(true)}
         />
       </main>
 
@@ -139,6 +182,14 @@ export default function App() {
       <EssayReaderModal
         essay={activeEssay}
         onClose={() => setActiveEssay(null)}
+      />
+      <CommandPaletteModal
+        isOpen={cmdPaletteOpen}
+        onClose={() => setCmdPaletteOpen(false)}
+        onSelectProject={(project) => setActiveProject(project)}
+        onOpenLlms={() => setLlmsOpen(true)}
+        onOpenBooking={() => setBookingOpen(true)}
+        onFlipBadge={handleFlipBadgeFromCmd}
       />
     </div>
   );

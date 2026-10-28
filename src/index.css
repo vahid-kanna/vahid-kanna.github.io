@@ -59,7 +59,7 @@ html, body {
 }
 
 .badge-card {
-  --initial-card-w: max(300px, min(max(520px, calc(50vw + 20px)), 760px));
+  --initial-card-w: max(310px, min(max(540px, calc(50vw + 20px)), 740px));
   --card-w: var(--initial-card-w);
   --card-h: calc(var(--card-w) * 0.68);
   width: var(--card-w);
@@ -75,12 +75,13 @@ html, body {
   top: 0px;
   left: 0px;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
 
 @media (max-width: 639px) {
   .badge-card {
     --card-w: min(calc(100vw - 28px), 356px);
-    --card-h: 440px;
+    --card-h: 410px;
     --card-scale: 0.85;
   }
 }
@@ -105,7 +106,7 @@ html, body {
   background: rgb(11, 11, 12);
   border: 1px solid rgba(255, 255, 255, 0.25);
   position: absolute;
-  transform: translate(-50%);
+  transform: translate3d(-50%, 0, 0);
 }
 
 .badge-ring {
@@ -119,13 +120,14 @@ html, body {
   pointer-events: none;
   z-index: 4;
   position: absolute;
-  transform: translate(-50%);
+  transform: translate3d(-50%, 0, 0);
 }
 
 .badge-perspective {
   perspective: 1200px;
   width: 100%;
   height: 100%;
+  transform-style: preserve-3d;
 }
 
 .badge-flip {
@@ -135,6 +137,7 @@ html, body {
   border-radius: 20px;
   position: relative;
   will-change: transform;
+  transform: translate3d(0, 0, 0) rotateY(0deg);
 }
 
 .badge-flip::before {
@@ -150,6 +153,8 @@ html, body {
 .badge-face {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  will-change: transform;
   background: rgb(11, 11, 12);
   border: 1px solid rgba(255, 255, 255, 0.24);
   box-shadow: rgba(255, 255, 255, 0.12) 0px 1px inset, rgba(0, 0, 0, 0.45) 0px 12px 32px;
@@ -157,6 +162,7 @@ html, body {
   position: absolute;
   inset: 0px;
   overflow: hidden;
+  transform: translate3d(0, 0, 0.1px);
 }
 
 .badge-face::before {
@@ -172,7 +178,7 @@ html, body {
 }
 
 .badge-face.back {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translate3d(0, 0, 0.1px);
 }
 
 .badge-dots {
