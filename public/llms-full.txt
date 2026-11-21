@@ -1,0 +1,54 @@
+# Shaik Vahid Basha — Full Public Profile
+
+Name: Shaik Vahid Basha (Vahid)
+Affiliation: IIT Madras, Class of 2027
+Location: Chennai, India
+Positioning: Product & business builder focused on turning messy real-world operations into practical software.
+Contact: vahidbashaunique@gmail.com
+Website: https://vahidbasha.me
+GitHub: https://github.com/vahid-kanna
+LinkedIn: https://www.linkedin.com/in/shaik-vahid-basha
+
+## Flagship Work
+
+### 1. SyncPro (2026 - Present)
+Role: Co-Founder & Business Lead
+Stage: Incubated at Nirmaan Pre-Incubator, IIT Madras; contractor pilot validation.
+URL: https://syncpro.org/
+Case study: https://vahidbasha.me/work/syncpro
+Summary: B2B SaaS project-controls workspace designed to bridge fragmented jobsite updates (voice notes, photos, daily logs) with master Primavera P6 schedules via a parallel Shadow Schedule review queue rather than silently mutating contractual baselines.
+Scope & Evidence: Conducted 25+ discovery interviews with site teams and planners; structured 5 pilot validation workflows targeting 4-8 hours/week in reduced manual reporting effort; advanced to the final evaluation stage of Nirmaan's Rs. 5,00,000 seed grant round. Financial models and pricing tiers are explicitly treated as working commercial scenarios under active pilot iteration.
+
+### 2. RailRaksha (2025 - 2026)
+Role: Solo Creator & Developer
+Stage: Experimental personal offline-first Progressive Web App.
+URL: https://railraksha.tech/
+Repository: https://github.com/vahid-kanna/RailRaksha
+Case study: https://vahidbasha.me/work/railraksha
+Summary: Offline-first field-work PWA inspired by my father's work as a Gang Mate on the SKM-UPD railway section. Built with vanilla JavaScript, Service Workers, and IndexedDB to boot locally in low-connectivity corridors with bilingual Telugu/English controls, high-contrast outdoor legibility, and a local gang diary.
+Safety & Technical Boundaries: Local caching and diary drafts run offline; live train schedule feeds and cloud AI defect classification require connectivity. RailRaksha is a personal experimental prototype and does not replace official railway safety rules or visual lookout (freight/goods trains are not timetabled on passenger feeds).
+
+### 3. Zamp AP Invoice Workbench (Nov 2026)
+Role: Solo Builder
+Stage: Live interactive prototype on Cloudflare Pages + FastAPI/SQLite backend test suite.
+URL: https://zamp.vahidbasha.me/
+Repository: https://github.com/vahid-kanna/complete-case-study-request-2
+Case study: https://vahidbasha.me/work/zamp-ap
+Summary: Autonomous Accounts Payable workflow engine taking real PDF invoices from intake through supplier lookup, arithmetic validation, PO matching, variance tolerances, duplicate blocking, and human-review routing. Includes 5+ runnable scenarios (happy path, freight variance, missing PO inference, reformatted duplicate, and scanned image-only PDFs that halt cleanly for manual keying rather than hallucinating amounts). Verified with 14/14 automated regression tests on the backend engine.
+
+### 4. ZeroEka (May - Jul 2026)
+Role: Product & Strategy Intern
+Stage: Industry internship (B2B EdTech SaaS; proprietary client interfaces omitted).
+Case study: https://vahidbasha.me/work/zeroeka
+Summary: Authored PRDs for an AI-assisted document-to-course ingestion studio, audited onboarding funnels using PostHog event telemetry to prioritize completion improvements, and modeled a 3-tier SaaS pricing framework and 30-day enterprise Proof-of-Concept structure.
+
+## Engineering Lab & Research
+- BSE Event-Driven Quant Research (Config E): https://github.com/vahid-kanna/bse-quant-engine — Historical backtest research across 649 BSE sessions auditing 6 lookahead biases, enforcing pre-open capital snapshots, gap-through stop fills, 60 bps slippage + statutory charges, and Benjamini-Hochberg FDR multiple-testing controls. Strictly historical research, not live trading or investment advice.
+- IITM Elective Vacancy Monitor: https://github.com/vahid-kanna/iitm-course-monitor — Headless Playwright monitor running via GitHub Actions cron (~280 daily checks across 20+ electives) sending SMTP email alerts on seat openings.
+- Kivi Semantic Memory Engine: https://github.com/vahid-kanna/Kivi_Golden_Goose — Local 3-tier memory prototype (SQLite + BM25 FTS5) with temporal query resolution and a 28/28 calibrated guardrail test suite.
+- Autonomous Opportunity Radar: https://github.com/vahid-kanna/opportunity-radar — Dual-pipeline scanner indexing campus and remote roles into SQLite state and static dashboards.
+
+## Selected Campus Leadership (IIT Madras)
+- Super Coordinator, CMGFS (2025 - 2026): Led a 25-member student team across campus facility audits, vendor benchmarking, and Food Carnival logistics (900+ footfall).
+- Events & Workshops Coordinator, Shaastra (2024 - 2025): International speaker outreach, workshop logistics for 300+ delegates, and AIJR proceedings coordination.
+- Chief Inspector & Coordinator, MMCC (2024 - 2025): Weekly dining hall hygiene/SLA audits and student grievance resolution.

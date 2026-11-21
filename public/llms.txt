@@ -1,0 +1,23 @@
+# Shaik Vahid Basha
+
+> Product & business builder at IIT Madras ('27). Co-founder & Business Lead at SyncPro, creator of RailRaksha, and builder of practical operational software and applied AI workflows.
+
+## Selected Work
+- [SyncPro](https://vahidbasha.me/work/syncpro): B2B SaaS construction schedule intelligence & field reconciliation workspace incubated at Nirmaan, IIT Madras. Live site: https://syncpro.org/
+- [RailRaksha](https://vahidbasha.me/work/railraksha): Experimental offline-first Progressive Web App built with my father's field work on Indian Railways in mind. Live PWA: https://railraksha.tech/ | Repo: https://github.com/vahid-kanna/RailRaksha
+- [Zamp AP Invoice Workbench](https://vahidbasha.me/work/zamp-ap): End-to-end Accounts Payable PDF-to-decision workflow prototype handling 2-way PO matching, variances, duplicate blocking, and safe escalation. Live demo: https://zamp.vahidbasha.me/ | Repo: https://github.com/vahid-kanna/complete-case-study-request-2
+- [ZeroEka](https://vahidbasha.me/work/zeroeka): Product & Strategy internship (May-Jul 2026) covering AI document ingestion PRDs, PostHog onboarding telemetry, and B2B SaaS pricing.
+
+## Engineering Lab
+- [Lab Index](https://vahidbasha.me/lab): BSE event-driven historical backtest research (Config E), IITM elective vacancy monitor, Kivi local semantic memory prototype, and autonomous opportunity radar.
+
+## Writing
+- [Why site teams ignore software that overwrites their schedule](https://vahidbasha.me/writing/shadow-schedule-trust)
+- [Designing for dead zones and sunlight on the SKM-UPD corridor](https://vahidbasha.me/writing/offline-first-skm-upd)
+- [Why failing safely beats guessing in operational AI](https://vahidbasha.me/writing/failing-safely-operational-ai)
+
+## Contact
+- Email: vahidbashaunique@gmail.com
+- GitHub: https://github.com/vahid-kanna
+- LinkedIn: https://www.linkedin.com/in/shaik-vahid-basha
+- Full profile: https://vahidbasha.me/llms-full.txt

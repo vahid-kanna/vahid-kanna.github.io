@@ -1,196 +1,119 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React, { useEffect, useState } from 'react';
-import { StippleCanvas } from './components/StippleCanvas';
-import { TopNotchNav, NavTab } from './components/TopNotchNav';
-import { LanyardBadgeHero } from './components/LanyardBadgeHero';
-import { ShippedWorkSection } from './components/ShippedWorkSection';
-import { WritingSection } from './components/WritingSection';
-import { UnsolicitedViewsSection } from './components/UnsolicitedViewsSection';
-import { FooterSection } from './components/FooterSection';
-import {
-  WorkPageView,
-  WritingPageView,
-  AboutPageView,
-} from './components/SubpageViews';
-import {
-  LlmsModal,
-  BookingModal,
-  ProjectDetailModal,
-  EssayReaderModal,
-  CommandPaletteModal,
-} from './components/Modals';
-import { ProjectItem, EssayItem } from './utils/portfolioLogic';
-import { playTactileClick } from './utils/soundEngine';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { getCaseStudyBySlug } from './data/work';
+import { getFieldNoteBySlug } from './data/writing';
+import { getRouteMeta, matchRoute, normalizePath, RouteMatch } from './lib/router';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { HomePage } from './pages/HomePage';
+import { CaseStudyPage } from './pages/CaseStudyPage';
+import { LabPage } from './pages/LabPage';
+import { WritingIndexPage } from './pages/WritingIndexPage';
+import { ArticlePage } from './pages/ArticlePage';
+import { AboutPage } from './pages/AboutPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<NavTab>('index');
-  const [llmsOpen, setLlmsOpen] = useState<boolean>(false);
-  const [bookingOpen, setBookingOpen] = useState<boolean>(false);
-  const [cmdPaletteOpen, setCmdPaletteOpen] = useState<boolean>(false);
-  const [activeProject, setActiveProject] = useState<ProjectItem | null>(null);
-  const [activeEssay, setActiveEssay] = useState<EssayItem | null>(null);
+  const [pathname, setPathname] = useState<string>(() =>
+    normalizePath(window.location.pathname)
+  );
+  const mainRef = useRef<HTMLElement>(null);
+  const isFirstRender = useRef(true);
 
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
+  const route: RouteMatch = matchRoute(pathname);
+
+  const navigate = useCallback((to: string) => {
+    const next = normalizePath(to);
+    if (next === normalizePath(window.location.pathname)) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
+    window.history.pushState({}, '', next);
+    setPathname(next);
   }, []);
 
-  // Global keyboard shortcuts: Escape to close modals, Cmd+K / Ctrl+K / '/' to open Command Palette
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setLlmsOpen(false);
-        setBookingOpen(false);
-        setCmdPaletteOpen(false);
-        setActiveProject(null);
-        setActiveEssay(null);
-        return;
-      }
-
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        playTactileClick(1.15);
-        setCmdPaletteOpen((prev) => !prev);
-        return;
-      }
-
-      const target = e.target as HTMLElement | null;
-      const isEditable =
-        target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.tagName === 'SELECT' ||
-          target.isContentEditable);
-
-      if (!isEditable && e.key === '/' && !cmdPaletteOpen) {
-        e.preventDefault();
-        playTactileClick(1.15);
-        setCmdPaletteOpen(true);
-      }
+    const onPopState = () => {
+      setPathname(normalizePath(window.location.pathname));
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [cmdPaletteOpen]);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
-  const handleNavigateSection = (sectionId: string) => {
-    playTactileClick(1.0);
-    if (activeTab !== 'index') {
-      setActiveTab('index');
-      setTimeout(() => {
-        const el = document.getElementById(sectionId);
-        el?.scrollIntoView({ behavior: 'smooth' });
-      }, 80);
-    } else {
-      const el = document.getElementById(sectionId);
-      el?.scrollIntoView({ behavior: 'smooth' });
+  // Update per-route document metadata and manage scroll/focus on navigation
+  useEffect(() => {
+    const meta = getRouteMeta(route);
+    document.title = meta.title;
+
+    const descEl = document.querySelector('meta[name="description"]');
+    if (descEl) descEl.setAttribute('content', meta.description);
+
+    const canonicalEl = document.querySelector('link[rel="canonical"]');
+    if (canonicalEl) canonicalEl.setAttribute('href', meta.canonical);
+
+    const ogTitleEl = document.querySelector('meta[property="og:title"]');
+    if (ogTitleEl) ogTitleEl.setAttribute('content', meta.title);
+
+    const ogDescEl = document.querySelector('meta[property="og:description"]');
+    if (ogDescEl) ogDescEl.setAttribute('content', meta.description);
+
+    const ogUrlEl = document.querySelector('meta[property="og:url"]');
+    if (ogUrlEl) ogUrlEl.setAttribute('content', meta.canonical);
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  };
 
-  const handleFlipBadgeFromCmd = () => {
-    if (activeTab !== 'index') {
-      setActiveTab('index');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('lanyard-flip-cmd'));
-      }, 120);
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      window.dispatchEvent(new CustomEvent('lanyard-flip-cmd'));
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    mainRef.current?.focus({ preventScroll: true });
+  }, [pathname, route]);
+
+  const renderPage = () => {
+    switch (route.name) {
+      case 'home':
+        return <HomePage onNavigate={navigate} />;
+      case 'case-study': {
+        const study = getCaseStudyBySlug(route.slug);
+        return study ? (
+          <CaseStudyPage study={study} onNavigate={navigate} />
+        ) : (
+          <NotFoundPage path={pathname} onNavigate={navigate} />
+        );
+      }
+      case 'lab':
+        return <LabPage onNavigate={navigate} />;
+      case 'writing':
+        return <WritingIndexPage onNavigate={navigate} />;
+      case 'article': {
+        const note = getFieldNoteBySlug(route.slug);
+        return note ? (
+          <ArticlePage note={note} onNavigate={navigate} />
+        ) : (
+          <NotFoundPage path={pathname} onNavigate={navigate} />
+        );
+      }
+      case 'about':
+        return <AboutPage onNavigate={navigate} />;
+      case 'not-found':
+        return <NotFoundPage path={route.path} onNavigate={navigate} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)] font-sans antialiased selection:bg-[var(--fg)] selection:text-[var(--bg)] relative">
-      {/* Skip to content link for accessibility */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[200] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[var(--fg)] focus:text-[var(--bg)] font-mono text-xs"
-      >
-        Skip to content
+    <div className="flex min-h-screen flex-col bg-[var(--bg)] text-[var(--ink)]">
+      <a href="#main-content" className="skip-link">
+        Skip to main content
       </a>
-
-      {/* Interactive 2D Stipple Background Canvas */}
-      <StippleCanvas />
-
-      {/* Top Concave Notch Navigation */}
-      <TopNotchNav
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-        onOpenLlms={() => setLlmsOpen(true)}
-        onOpenBooking={() => setBookingOpen(true)}
-        onOpenCmdPalette={() => setCmdPaletteOpen(true)}
-      />
-
-      {/* Main Content Area */}
-      <main id="main-content" className="relative z-10 w-full">
-        {activeTab === 'index' && (
-          <div className="relative w-full">
-            <LanyardBadgeHero
-              onOpenBooking={() => setBookingOpen(true)}
-              onOpenLlms={() => setLlmsOpen(true)}
-              onOpenCmdPalette={() => setCmdPaletteOpen(true)}
-              onNavigateSection={handleNavigateSection}
-            />
-
-            <ShippedWorkSection
-              onViewAllWork={() => {
-                setActiveTab('work');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onSelectProjectModal={(project) => setActiveProject(project)}
-            />
-
-            <WritingSection
-              onViewAllWriting={() => {
-                setActiveTab('writing');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onSelectEssay={(essay) => setActiveEssay(essay)}
-            />
-
-            <UnsolicitedViewsSection />
-          </div>
-        )}
-
-        {activeTab === 'work' && (
-          <WorkPageView onSelectProjectModal={(project) => setActiveProject(project)} />
-        )}
-
-        {activeTab === 'writing' && (
-          <WritingPageView onSelectEssay={(essay) => setActiveEssay(essay)} />
-        )}
-
-        {activeTab === 'about' && <AboutPageView />}
-
-        <FooterSection
-          onOpenBooking={() => setBookingOpen(true)}
-          onOpenLlms={() => setLlmsOpen(true)}
-          onOpenCmdPalette={() => setCmdPaletteOpen(true)}
-        />
+      <Header route={route} onNavigate={navigate} />
+      <main
+        id="main-content"
+        ref={mainRef}
+        tabIndex={-1}
+        className="flex-1 outline-none"
+      >
+        {renderPage()}
       </main>
-
-      {/* Modals */}
-      <LlmsModal isOpen={llmsOpen} onClose={() => setLlmsOpen(false)} />
-      <BookingModal isOpen={bookingOpen} onClose={() => setBookingOpen(false)} />
-      <ProjectDetailModal
-        project={activeProject}
-        onClose={() => setActiveProject(null)}
-      />
-      <EssayReaderModal
-        essay={activeEssay}
-        onClose={() => setActiveEssay(null)}
-      />
-      <CommandPaletteModal
-        isOpen={cmdPaletteOpen}
-        onClose={() => setCmdPaletteOpen(false)}
-        onSelectProject={(project) => setActiveProject(project)}
-        onOpenLlms={() => setLlmsOpen(true)}
-        onOpenBooking={() => setBookingOpen(true)}
-        onFlipBadge={handleFlipBadgeFromCmd}
-      />
+      <Footer onNavigate={navigate} />
     </div>
   );
 }
