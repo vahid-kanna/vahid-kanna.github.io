@@ -17,13 +17,13 @@ export const ProductPlate: React.FC<ProductPlateProps> = ({
   linkLabel,
   onNavigate,
 }) => {
-  const plateInner = (
+  const inner = (
     <div
       className={`product-plate overflow-hidden p-2 sm:p-2.5 ${
-        href ? 'transition-[border-color,box-shadow] duration-150 hover:border-[var(--border-strong)] hover:shadow-[0_4px_14px_rgba(20,20,19,0.06)]' : ''
+        href ? 'hover:border-white/25' : ''
       }`}
     >
-      <div className="overflow-hidden rounded-[6px] border border-[var(--border)] bg-[var(--surface-subtle)]">
+      <div className="overflow-hidden rounded-[10px] border border-white/[0.08] bg-[#161615]">
         <img
           src={image.src}
           alt={image.alt}
@@ -44,14 +44,14 @@ export const ProductPlate: React.FC<ProductPlateProps> = ({
           to={href}
           onNavigate={onNavigate}
           aria-label={linkLabel ?? image.alt}
-          className="block rounded-[10px]"
+          className="block rounded-[14px]"
         >
-          {plateInner}
+          {inner}
         </Link>
       ) : (
-        plateInner
+        inner
       )}
-      <figcaption className="mt-2.5 text-[13px] leading-[1.5] text-[var(--ink-muted)]">
+      <figcaption className="mt-2.5 text-[13px] leading-[1.55] text-[var(--mut)]">
         {image.caption}
       </figcaption>
     </figure>

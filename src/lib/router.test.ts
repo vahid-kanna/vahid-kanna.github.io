@@ -1,3 +1,4 @@
+import { createDualStrapNodes, createDualStrapConstraints, stepDualStrapVerlet } from './lanyardPhysics';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { matchRoute, getRouteMeta } from './router';
@@ -70,4 +71,16 @@ test('editorial exclusions are strictly absent from all data modules', () => {
   for (const rx of forbidden) {
     assert.equal(rx.test(corpus), false, `Forbidden pattern matched in data corpus: ${rx}`);
   }
+});
+
+test('lanyard Verlet physics settles cleanly without NaN', () => {
+  const nodes = createDualStrapNodes(720, 12, 180, 360, 1);
+  const constraints = createDualStrapConstraints(360, 1);
+  nodes[10].x += 40;
+  let last = stepDualStrapVerlet(nodes, constraints, { anchorX: 720, anchorY: 12, cardH: 360, scale: 1 });
+  for (let i = 0; i < 60; i++) {
+    last = stepDualStrapVerlet(nodes, constraints, { anchorX: 720, anchorY: 12, cardH: 360, scale: 1 });
+  }
+  assert.ok(Number.isFinite(last.cardCenterX) && Number.isFinite(last.cardCenterY));
+  assert.ok(Number.isFinite(last.angleRad));
 });

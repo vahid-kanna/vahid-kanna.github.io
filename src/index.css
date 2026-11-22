@@ -1,40 +1,35 @@
 @import "tailwindcss";
 
-:root {
-  --bg: #F8F7F4;
-  --surface: #FFFFFF;
-  --surface-subtle: #F1EFEA;
-  --ink: #141413;
-  --ink-secondary: #4A4945;
-  --ink-muted: #68665F;
-  --border: #E3E0D8;
-  --border-strong: #CBC6BA;
-  --accent: #164E3F;
-  --accent-hover: #103D31;
-  --accent-tint: #E7F0EC;
-  --on-accent-tint: #124034;
-  --on-accent: #F8F7F4;
-  --ring: #164E3F;
-  --status-live-bg: #E6F3EC;
-  --status-live-fg: #14532D;
-  --status-proto-bg: #F6EFE0;
-  --status-proto-fg: #713F12;
-  --radius: 6px;
-  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  color-scheme: light;
+:root,
+.dark {
+  --bg: #0d0d0c;
+  --surface: #131312;
+  --surface-elevated: #1a1a18;
+  --fg: #eeece6;
+  --fg-secondary: #c4c2bc;
+  --mut: #9a9891;
+  --line: rgba(255, 255, 255, 0.12);
+  --line-strong: rgba(255, 255, 255, 0.24);
+  --p0: #b3a6ff;
+  --p1: #d5b0f5;
+  --p2: #ffb3dc;
+  --p3: #a6e6f2;
+  --p4: #c9c0ff;
+  --p5: #fcc4e3;
+  --ring: #c9c0ff;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
 }
 
 @layer base {
   html {
     background-color: var(--bg);
-    color: var(--ink);
+    color: var(--fg);
     font-family: var(--font-sans);
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
   }
 
@@ -42,33 +37,28 @@
     margin: 0;
     min-height: 100vh;
     background-color: var(--bg);
-    color: var(--ink);
+    color: var(--fg);
     line-height: 1.65;
   }
 
   ::selection {
-    background-color: var(--accent-tint);
-    color: var(--ink);
+    background-color: rgba(179, 166, 255, 0.28);
+    color: #ffffff;
   }
 
   a,
   button {
-    transition: color 150ms cubic-bezier(0.22, 1, 0.36, 1),
-      background-color 150ms cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 150ms cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 150ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition: color 130ms ease-out,
+      background-color 130ms ease-out,
+      border-color 130ms ease-out,
+      opacity 130ms ease-out;
   }
 
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 3px;
-    border-radius: 3px;
+    border-radius: 4px;
   }
-}
-
-.font-display {
-  font-family: var(--font-display);
-  font-optical-sizing: auto;
 }
 
 .font-mono-meta {
@@ -76,18 +66,21 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Skip link for keyboard navigation */
+.text-halo {
+  text-shadow: 0 0 18px var(--bg), 0 0 32px var(--bg);
+}
+
 .skip-link {
   position: fixed;
   top: -100px;
   left: 16px;
   z-index: 100;
-  background: var(--ink);
+  background: var(--fg);
   color: var(--bg);
   padding: 10px 16px;
-  border-radius: var(--radius);
+  border-radius: 8px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -95,30 +88,209 @@
   top: 16px;
 }
 
-/* Offset anchor scrolls below sticky header */
 section[id] {
-  scroll-margin-top: 84px;
+  scroll-margin-top: 76px;
 }
 
-/* Editorial link underline treatment */
 .editorial-link {
   text-decoration: underline;
-  text-decoration-color: var(--border-strong);
+  text-decoration-color: rgba(255, 255, 255, 0.25);
   text-underline-offset: 4px;
   text-decoration-thickness: 1px;
 }
 
 .editorial-link:hover {
-  text-decoration-color: var(--accent);
-  color: var(--accent);
+  text-decoration-color: var(--p0);
+  color: #ffffff;
 }
 
-/* Framed real product plate */
+/* Interactive ID Badge & Verlet Lanyard Stage */
+.badge-stage {
+  user-select: none;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  min-height: 100svh;
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-rope {
+  z-index: 2;
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+}
+
+.badge-card {
+  --card-w: max(310px, min(max(540px, calc(50vw + 20px)), 680px));
+  --card-h: calc(var(--card-w) * 0.65);
+  width: var(--card-w);
+  height: var(--card-h);
+  --card-scale: calc(var(--card-w, 560px) / 560);
+  z-index: 3;
+  transform-origin: 50% center;
+  touch-action: none;
+  cursor: grab;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+.badge-card.is-dragging {
+  cursor: grabbing;
+}
+
+.badge-slot {
+  width: calc(46px * var(--card-scale, 1));
+  height: calc(7px * var(--card-scale, 1));
+  border-radius: calc(4px * var(--card-scale, 1));
+  left: 50%;
+  top: calc(-6px * var(--card-scale, 1));
+  z-index: 4;
+  background: rgb(11, 11, 12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  position: absolute;
+  transform: translate3d(-50%, 0, 0);
+}
+
+.badge-ring {
+  width: calc(14px * var(--card-scale, 1));
+  height: calc(22px * var(--card-scale, 1));
+  border: calc(2.5px * var(--card-scale, 1)) solid #c4c4cb;
+  border-radius: calc(8px * var(--card-scale, 1));
+  left: 50%;
+  top: calc(-18px * var(--card-scale, 1));
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 4;
+  position: absolute;
+  transform: translate3d(-50%, 0, 0);
+}
+
+.badge-perspective {
+  perspective: 1200px;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.badge-flip {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  border-radius: 20px;
+  position: relative;
+  will-change: transform;
+  transform: translate3d(0, 0, 0) rotateY(0deg);
+}
+
+.badge-flip::before {
+  content: "";
+  pointer-events: none;
+  z-index: -1;
+  border-radius: 20px;
+  position: absolute;
+  inset: 0;
+  box-shadow: rgba(0, 0, 0, 0.75) 0 30px 60px, rgba(255, 255, 255, 0.05) 0 0 24px;
+}
+
+.badge-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  background: #101011;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: rgba(255, 255, 255, 0.1) 0 1px inset, rgba(0, 0, 0, 0.5) 0 12px 32px;
+  border-radius: 20px;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform: translate3d(0, 0, 0.1px);
+}
+
+.badge-face::before {
+  content: "";
+  pointer-events: none;
+  z-index: 20;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(255, 255, 255, 0.22) 18%,
+    rgba(255, 255, 255, 0.22) 82%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  height: 1px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.badge-face.back {
+  transform: rotateY(180deg) translate3d(0, 0, 0.1px);
+}
+
+.badge-dots {
+  mix-blend-mode: screen;
+  opacity: 0.42;
+  pointer-events: none;
+  z-index: 6;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, rgba(0, 0, 0, 0) 1.3px);
+  background-size: 7px 7px;
+  border-radius: 20px;
+  position: absolute;
+  inset: 0;
+}
+
+.badge-glare {
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 7;
+  background-image: linear-gradient(
+    105deg,
+    rgba(0, 0, 0, 0) 40%,
+    rgba(255, 255, 255, 0.13) 50%,
+    rgba(0, 0, 0, 0) 60%
+  );
+  background-size: 260% 100%;
+  border-radius: 20px;
+  position: absolute;
+  inset: 0;
+}
+
+.badge-accent {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(
+    100deg,
+    rgb(201, 184, 255),
+    rgb(255, 168, 218),
+    rgb(154, 228, 246),
+    rgb(201, 184, 255)
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-weight: 500;
+  display: inline;
+}
+
+.badge-contrib-cell[data-level="0"] { background: rgba(255, 255, 255, 0.06); }
+.badge-contrib-cell[data-level="1"] { background: rgba(166, 230, 242, 0.72); }
+.badge-contrib-cell[data-level="2"] { background: rgba(179, 166, 255, 0.8); }
+.badge-contrib-cell[data-level="3"] { background: rgba(213, 176, 245, 0.86); }
+.badge-contrib-cell[data-level="4"] { background: rgba(255, 179, 220, 0.9); }
+
+/* Clean dark product screenshot frame — zero neon glow, zero TiltCard lag */
 .product-plate {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
-  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.05);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -2,8 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { getCaseStudyBySlug } from './data/work';
 import { getFieldNoteBySlug } from './data/writing';
 import { getRouteMeta, matchRoute, normalizePath, RouteMatch } from './lib/router';
-import { Header } from './components/Header';
+import { StippleCanvas } from './components/StippleCanvas';
+import { TopNotchNav } from './components/TopNotchNav';
 import { Footer } from './components/Footer';
+import { CommandPalette } from './components/CommandPalette';
+import { LlmsModal } from './components/LlmsModal';
 import { HomePage } from './pages/HomePage';
 import { CaseStudyPage } from './pages/CaseStudyPage';
 import { LabPage } from './pages/LabPage';
@@ -16,6 +19,8 @@ export default function App() {
   const [pathname, setPathname] = useState<string>(() =>
     normalizePath(window.location.pathname)
   );
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const [llmsOpen, setLlmsOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
   const isFirstRender = useRef(true);
 
@@ -32,14 +37,21 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const onPopState = () => {
-      setPathname(normalizePath(window.location.pathname));
+    const onPopState = () => setPathname(normalizePath(window.location.pathname));
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCmdOpen((v) => !v);
+      }
     };
     window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+      window.removeEventListener('keydown', onKeyDown);
+    };
   }, []);
 
-  // Update per-route document metadata and manage scroll/focus on navigation
   useEffect(() => {
     const meta = getRouteMeta(route);
     document.title = meta.title;
@@ -63,7 +75,6 @@ export default function App() {
       isFirstRender.current = false;
       return;
     }
-
     window.scrollTo({ top: 0, behavior: 'auto' });
     mainRef.current?.focus({ preventScroll: true });
   }, [pathname, route]);
@@ -71,7 +82,7 @@ export default function App() {
   const renderPage = () => {
     switch (route.name) {
       case 'home':
-        return <HomePage onNavigate={navigate} />;
+        return <HomePage onNavigate={navigate} onOpenLlms={() => setLlmsOpen(true)} />;
       case 'case-study': {
         const study = getCaseStudyBySlug(route.slug);
         return study ? (
@@ -100,20 +111,32 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--bg)] text-[var(--ink)]">
+    <div className="relative flex min-h-screen flex-col bg-[var(--bg)] text-[var(--fg)]">
+      <StippleCanvas />
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
-      <Header route={route} onNavigate={navigate} />
-      <main
-        id="main-content"
-        ref={mainRef}
-        tabIndex={-1}
-        className="flex-1 outline-none"
-      >
+      <TopNotchNav
+        route={route}
+        onNavigate={navigate}
+        onOpenLlms={() => setLlmsOpen(true)}
+        onOpenCmdPalette={() => setCmdOpen(true)}
+      />
+      <main id="main-content" ref={mainRef} tabIndex={-1} className="relative z-10 flex-1 outline-none">
         {renderPage()}
       </main>
-      <Footer onNavigate={navigate} />
+      <Footer
+        onNavigate={navigate}
+        onOpenLlms={() => setLlmsOpen(true)}
+        onOpenCmdPalette={() => setCmdOpen(true)}
+      />
+      <CommandPalette
+        open={cmdOpen}
+        onClose={() => setCmdOpen(false)}
+        onNavigate={navigate}
+        onOpenLlms={() => setLlmsOpen(true)}
+      />
+      <LlmsModal open={llmsOpen} onClose={() => setLlmsOpen(false)} />
     </div>
   );
 }

@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { SITE } from '../data/site';
+import { playTactileClick } from '../lib/soundEngine';
 
 interface CopyEmailButtonProps {
-  variant?: 'default' | 'subtle';
   className?: string;
 }
 
-export const CopyEmailButton: React.FC<CopyEmailButtonProps> = ({
-  variant = 'default',
-  className = '',
-}) => {
+export const CopyEmailButton: React.FC<CopyEmailButtonProps> = ({ className = '' }) => {
   const [status, setStatus] = useState<'idle' | 'copied' | 'fallback'>('idle');
 
   const handleCopy = async () => {
+    playTactileClick(1.05);
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(SITE.email);
@@ -27,27 +25,22 @@ export const CopyEmailButton: React.FC<CopyEmailButtonProps> = ({
     }
   };
 
-  const baseClasses =
-    variant === 'default'
-      ? 'inline-flex min-h-[44px] items-center gap-2 rounded-[6px] border border-[var(--border-strong)] bg-transparent px-4 py-2 text-[15px] font-medium text-[var(--ink)] hover:bg-[var(--surface-subtle)] cursor-pointer'
-      : 'inline-flex min-h-[44px] items-center gap-1.5 rounded-[6px] px-2.5 py-2 text-[14px] font-medium text-[var(--ink-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--ink)] cursor-pointer';
-
   return (
     <div className="inline-flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={handleCopy}
-        className={`${baseClasses} ${className}`}
+        className={`inline-flex min-h-[42px] cursor-pointer items-center gap-2 rounded-lg border border-[var(--line-strong)] bg-[var(--surface)] px-4 py-2 text-[14px] font-medium text-[var(--fg)] hover:border-white/40 hover:bg-[var(--surface-elevated)] ${className}`}
         aria-label={`Copy email address ${SITE.email}`}
       >
         {status === 'copied' ? (
           <>
-            <Check className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
-            <span className="text-[var(--accent)]">Email copied</span>
+            <Check className="h-4 w-4 text-emerald-300" aria-hidden="true" />
+            <span className="text-emerald-200">Email copied</span>
           </>
         ) : (
           <>
-            <Copy className="h-4 w-4 text-[var(--ink-muted)]" aria-hidden="true" />
+            <Copy className="h-4 w-4 text-[var(--mut)]" aria-hidden="true" />
             <span>Copy email</span>
           </>
         )}
@@ -56,7 +49,7 @@ export const CopyEmailButton: React.FC<CopyEmailButtonProps> = ({
         {status === 'copied' ? `Copied ${SITE.email} to clipboard.` : ''}
       </span>
       {status === 'fallback' && (
-        <span className="font-mono-meta rounded-[4px] border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1.5 text-[13px] text-[var(--ink)] select-all">
+        <span className="font-mono-meta rounded-md border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1.5 text-[12.5px] text-[var(--fg)] select-all">
           {SITE.email}
         </span>
       )}
